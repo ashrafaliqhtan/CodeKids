@@ -1,0 +1,1108 @@
+<?php
+// Start session (same as your other pages)
+if(!isset($_SESSION)){
+  session_start();
+}
+include_once('../dbConnection.php');
+
+if(isset($_SESSION['is_login'])){
+  $stuEmail=$_SESSION['stuLogEmail'];
+}else{
+  echo "<script>location.href='../index.php' </script>";
+}
+
+if(isset($_SESSION['is_login'])){
+    $stuLogEmail=$_SESSION['stuLogEmail'];
+  }
+  if(isset($stuLogEmail)){
+    $sql="SELECT * FROM students WHERE stu_email = '$stuLogEmail'";
+    $result=$conn->query($sql);
+    $row=$result->fetch_assoc();
+    $stu_img=$row['stu_img'];
+    $stuId=$row['stu_id'];
+    $stuName=$row['stu_name'];
+    $stuOcc=$row['stu_occ'];
+  }
+
+$stuLogEmail = $_SESSION['stuLogEmail'];
+$user_id = (int)$row['stu_id'];
+
+$game_id = (int)$_GET['game_id'];
+
+// Check if user has access to this game
+$sql = "SELECT lg.*, l.lesson_name, l.lesson_id, l.course_id 
+        FROM lesson_games lg
+        JOIN lesson l ON lg.lesson_id = l.lesson_id
+        JOIN course c ON l.course_id = c.course_id
+        WHERE lg.game_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $game_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$game = $result->fetch_assoc();
+$questions = json_decode($game['questions'], true);
+
+// Validate JSON data
+if (json_last_error() !== JSON_ERROR_NONE) {
+    die("Invalid game data format");
+}
+
+// Check if questions exist
+$total_questions = 0;
+$valid_question_types = ['true_false', 'multiple_choice', 'multi_select'];
+
+foreach ($valid_question_types as $type) {
+    if (isset($questions[$type]) && is_array($questions[$type])) {
+        $total_questions += count($questions[$type]);
+    }
+}
+
+// Check if user already completed this game
+$stmt = $conn->prepare("SELECT score FROM user_game_progress WHERE stu_id = ? AND game_id = ?");
+$stmt->bind_param("ii", $stuId, $game_id);
+$stmt->execute();
+$completed_result = $stmt->get_result();
+$completed = $completed_result->num_rows > 0;
+$previous_score = $completed ? $completed_result->fetch_assoc()['score'] : null;
+
+// Set secure headers
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; frame-src 'self'; connect-src 'self'");
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo htmlspecialchars($game['lesson_name']); ?> Game | CodeKids</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Improved CSS with animations and responsive design */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .game-container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .game-header {
+            background: linear-gradient(135deg, #6C63FF 0%, #4A42E8 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .game-title {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
+        }
+        
+        .progress-container {
+            padding: 15px 20px;
+            background: #f0f2f5;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6C63FF 0%, #FF6584 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+        
+        .game-content {
+            padding: 20px;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        .character-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .speech-bubble {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            position: relative;
+            max-width: 80%;
+            text-align: center;
+            animation: bounce 2s infinite;
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            margin-left: -10px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-top-color: white;
+            border-bottom: 0;
+        }
+        
+        .character {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            transition: all 0.3s;
+        }
+        
+        .question-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .options-container {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .option {
+            background: #f5f7fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-size: 16px;
+        }
+        
+        .option:hover {
+            background: #eef2f7;
+            border-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+        
+        .option:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.3);
+        }
+        
+        .true-btn {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: #4CAF50;
+        }
+        
+        .false-btn {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: #F44336;
+        }
+        
+        .correct {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+            color: #2E7D32;
+        }
+        
+        .wrong {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: #F44336;
+            color: #C62828;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        
+        .checkbox-option input {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .submit-btn {
+            background: #6C63FF;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #5a52e0;
+            transform: translateY(-2px);
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+        }
+        
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .feedback.correct {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2E7D32;
+        }
+        
+        .feedback.wrong {
+            background: rgba(244, 67, 54, 0.2);
+            color: #C62828;
+        }
+        
+        .help-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #FFC107;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .help-btn:hover {
+            background: #FFB300;
+            transform: scale(1.1);
+        }
+        
+        .result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .result-screen.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .result-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        
+        .result-screen.show .result-content {
+            transform: scale(1);
+        }
+        
+        .result-title {
+            color: #6C63FF;
+            margin-bottom: 20px;
+        }
+        
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #6C63FF;
+            margin: 20px 0;
+        }
+        
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .star {
+            font-size: 40px;
+            color: #e0e0e0;
+            transition: all 0.5s;
+        }
+        
+        .star.filled {
+            color: #FFC107;
+            transform: scale(1.2);
+        }
+        
+        .result-message {
+            margin-bottom: 25px;
+            font-size: 18px;
+        }
+        
+        .next-btn {
+            background: #6C63FF;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .next-btn:hover {
+            background: #5a52e0;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+        
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .restart-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .restart-btn:hover {
+            background: #e05572;
+            transform: translateY(-2px);
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .character {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .help-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title"><?php echo htmlspecialchars($game['lesson_name']); ?> Game</h1>
+            <button class="back-btn" onclick="window.location.href='watchCourse.php?lesson_id=<?php echo (int)$game['lesson_id']; ?>'">
+                <i class="fas fa-arrow-left"></i> Back to Lesson
+            </button>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-text">
+                <span id="progressText">Question 1/<?php echo $total_questions; ?></span>
+                <span id="scoreText">Score: 0</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="game-content">
+            <div class="character-container">
+                <div class="speech-bubble" id="hintBubble">Ready to play? Let's go!</div>
+                <img src="character-normal.png" alt="Game Character" class="character" id="characterImg">
+            </div>
+            
+            <div class="question-section" id="questionSection">
+                <div class="question-text" id="questionText"></div>
+                <div class="options-container" id="optionsContainer"></div>
+                <div class="feedback" id="feedback"></div>
+                <button class="restart-btn" id="restartBtn" style="display: none;">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+            
+            <button class="help-btn" id="helpBtn" aria-label="Get hint">
+                <i class="fas fa-lightbulb"></i>
+            </button>
+            
+            <div class="confetti" id="confetti"></div>
+            
+            <div class="result-screen" id="resultScreen">
+                <div class="result-content">
+                    <h2 class="result-title">Game Completed!</h2>
+                    <div class="score-display" id="finalScore">0%</div>
+                    <div class="stars" id="starsContainer"></div>
+                    <p class="result-message" id="resultMessage"></p>
+                    <button class="next-btn" id="nextBtn">Continue Learning</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Game data from PHP with proper escaping
+    const gameData = {
+        questions: <?php echo json_encode($questions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>,
+        passingScore: <?php echo (int)$game['passing_score']; ?>,
+        totalQuestions: <?php echo $total_questions; ?>,
+        gameId: <?php echo $game_id; ?>,
+        userId: <?php echo $stuId; ?>,
+        lessonId: <?php echo (int)$game['lesson_id']; ?>,
+        completed: <?php echo $completed ? 'true' : 'false'; ?>,
+        previousScore: <?php echo $previous_score !== null ? (int)$previous_score : 'null'; ?>,
+        lessonName: <?php echo json_encode($game['lesson_name'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>
+    };
+    
+    // Game state
+    let gameState = {
+        currentSection: 'true_false',
+        currentQuestion: 0,
+        score: 0,
+        hintsUsed: 0,
+        currentHint: 0,
+        answeredQuestions: 0,
+        lives: 3, // Number of attempts before restart
+        questionsOrder: {}, // To track order of questions
+        wrongAnswers: 0, // Track wrong answers for restart logic
+        gameOver: false // Track if game is over
+    };
+    
+    // DOM elements
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const feedback = document.getElementById('feedback');
+    const progressText = document.getElementById('progressText');
+    const scoreText = document.getElementById('scoreText');
+    const progressFill = document.getElementById('progressFill');
+    const hintBubble = document.getElementById('hintBubble');
+    const characterImg = document.getElementById('characterImg');
+    const helpBtn = document.getElementById('helpBtn');
+    const resultScreen = document.getElementById('resultScreen');
+    const finalScore = document.getElementById('finalScore');
+    const starsContainer = document.getElementById('starsContainer');
+    const resultMessage = document.getElementById('resultMessage');
+    const nextBtn = document.getElementById('nextBtn');
+    const confetti = document.getElementById('confetti');
+    const restartBtn = document.getElementById('restartBtn');
+    
+    // Initialize game
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize questions order
+        initQuestionsOrder();
+        
+        // Check if already completed
+        if (gameData.completed) {
+            showResult(gameData.previousScore, true);
+        } else {
+            loadQuestion();
+            updateProgress();
+        }
+        
+        // Set up event listeners
+        helpBtn.addEventListener('click', showHint);
+        nextBtn.addEventListener('click', proceedAfterGame);
+        restartBtn.addEventListener('click', restartGame);
+        
+        // Accessibility - make options keyboard navigable
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.activeElement.classList.contains('option')) {
+                document.activeElement.click();
+            }
+        });
+    });
+    
+    // Initialize random order for questions if needed
+    function initQuestionsOrder() {
+        gameState.questionsOrder = {
+            true_false: Array.from({length: gameData.questions.true_false.length}, (_, i) => i),
+            multiple_choice: Array.from({length: gameData.questions.multiple_choice.length}, (_, i) => i),
+            multi_select: Array.from({length: gameData.questions.multi_select.length}, (_, i) => i)
+        };
+    }
+    
+    // Load current question
+    function loadQuestion() {
+        // Clear previous question
+        optionsContainer.innerHTML = '';
+        feedback.innerHTML = '';
+        feedback.className = 'feedback';
+        gameState.currentHint = 0;
+        restartBtn.style.display = 'none';
+        gameState.gameOver = false;
+        
+        // Get current question using the ordered index
+        const orderedIndex = gameState.questionsOrder[gameState.currentSection][gameState.currentQuestion];
+        const question = gameData.questions[gameState.currentSection][orderedIndex];
+        
+        // Set question text
+        questionText.textContent = question.question;
+        
+        // Create appropriate options based on question type
+        if (gameState.currentSection === 'true_false') {
+            const trueBtn = document.createElement('button');
+            trueBtn.className = 'option true-btn';
+            trueBtn.textContent = 'True';
+            trueBtn.onclick = () => checkAnswer(true, orderedIndex);
+            trueBtn.tabIndex = 0;
+            
+            const falseBtn = document.createElement('button');
+            falseBtn.className = 'option false-btn';
+            falseBtn.textContent = 'False';
+            falseBtn.onclick = () => checkAnswer(false, orderedIndex);
+            falseBtn.tabIndex = 0;
+            
+            optionsContainer.append(trueBtn, falseBtn);
+        } 
+        else if (gameState.currentSection === 'multiple_choice') {
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.textContent = option;
+                btn.onclick = () => checkAnswer(index, orderedIndex);
+                btn.tabIndex = 0;
+                optionsContainer.appendChild(btn);
+            });
+        }
+        else if (gameState.currentSection === 'multi_select') {
+            question.options.forEach((option, index) => {
+                const label = document.createElement('label');
+                label.className = 'option checkbox-option';
+                label.innerHTML = `
+                    <input type="checkbox" value="${index}" tabindex="0">
+                    <span>${option}</span>
+                `;
+                optionsContainer.appendChild(label);
+            });
+            
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'submit-btn';
+            submitBtn.textContent = 'Submit Answers';
+            submitBtn.onclick = () => checkMultiSelectAnswer(orderedIndex);
+            submitBtn.tabIndex = 0;
+            optionsContainer.appendChild(submitBtn);
+        }
+        
+        // Update character
+        updateCharacter('normal');
+        speak("Can you answer this question?");
+    }
+    
+    // Check answer for true/false and multiple choice
+  // تعديل دالة checkAnswer لمعالجة مشكلة التوقف عند الخطأ
+function checkAnswer(userAnswer, questionIndex) {
+    if (gameState.gameOver) return;
+    
+    const question = gameData.questions[gameState.currentSection][questionIndex];
+    const options = document.querySelectorAll('.option');
+    let isCorrect = false;
+
+    // تعطيل الخيارات مؤقتًا بعد الإجابة
+    options.forEach(opt => {
+        opt.style.pointerEvents = 'none';
+        opt.tabIndex = -1;
+    });
+
+    // التحقق من الإجابة
+    isCorrect = (gameState.currentSection === 'true_false') 
+        ? userAnswer === question.correctAnswer
+        : userAnswer === question.correctIndex;
+
+    if (isCorrect) {
+        // الإجابة الصحيحة
+        handleCorrectAnswer(userAnswer);
+        setTimeout(nextQuestion, 2000);
+    } else {
+        // الإجابة الخاطئة
+      
+      speak(`Oops!  attempt(s) remaining.`);
+      
+      gameState.gameOver = true;
+        speak("Game over! Let's try again from the beginning.");
+        showFeedback("Game over! Starting over...", false);
+        restartBtn.style.display = 'block';
+        characterImg.classList.add('shake');
+        handleWrongAnswer(userAnswer, 
+            gameState.currentSection === 'true_false' 
+                ? !userAnswer 
+                : question.correctIndex);
+        
+        // لا ننتقل للسؤال التالي مباشرة، ننتظر إما إعادة المحاولة أو استنفاذ المحاولات
+        if (gameState.wrongAnswers >= gameState.lives) {
+            // لا نستدعي nextQuestion هنا، سننتظر الضغط على زر إعادة المحاولة
+        } else {
+            // إعادة تمكين الخيارات للمحاولة التالية بعد تأخير
+            setTimeout(() => {
+                options.forEach(opt => {
+                    opt.style.pointerEvents = 'auto';
+                    opt.tabIndex = 0;
+                });
+            }, 2000);
+        }
+    }
+    
+    gameState.answeredQuestions++;
+    updateProgress();
+}
+
+// دالة معالجة الإجابة الصحيحة
+function handleCorrectAnswer(userAnswer) {
+    highlightCorrectAnswer(userAnswer);
+    gameState.score++;
+    gameState.wrongAnswers = 0;
+    updateCharacter('happy');
+    speak("Great job! That's correct!");
+    showFeedback("Correct! Well done!", true);
+}
+
+// دالة معالجة الإجابة الخاطئة
+function handleWrongAnswer(userAnswer, correctIndex) {
+  speak(`Oops! ${remainingAttempts} attempt(s) remaining.`);
+  
+    highlightWrongAnswer(userAnswer, correctIndex);
+    updateCharacter('confused');
+    
+    gameState.wrongAnswers++;
+    const remainingAttempts = gameState.lives - gameState.wrongAnswers;
+    
+    if (remainingAttempts > 0) {
+        speak(`Oops! ${remainingAttempts} attempt(s) remaining.`);
+        showFeedback(`Wrong answer! ${remainingAttempts} attempt(s) remaining.`, false);
+    } else {
+        gameState.gameOver = true;
+        speak("Game over! Let's try again from the beginning.");
+        showFeedback("Game over! Starting over...", false);
+        restartBtn.style.display = 'block';
+        characterImg.classList.add('shake');
+    }
+}
+
+// تعديل دالة nextQuestion لتجنب المشاكل
+function nextQuestion() {
+    characterImg.classList.remove('shake');
+    gameState.currentQuestion++;
+    gameState.hintsUsed = 0;
+    gameState.wrongAnswers = 0; // إعادة تعيين العدادات عند الانتقال للسؤال التالي
+    
+    // الانتقال للقسم التالي إذا انتهت أسئلة القسم الحالي
+    if (gameState.currentQuestion >= gameData.questions[gameState.currentSection].length) {
+        if (gameState.currentSection === 'true_false') {
+            gameState.currentSection = 'multiple_choice';
+        } else if (gameState.currentSection === 'multiple_choice') {
+            gameState.currentSection = 'multi_select';
+        } else {
+            finishGame();
+            return;
+        }
+        gameState.currentQuestion = 0;
+    }
+    
+    loadQuestion();
+}  
+    // Check multi-select answers
+    function checkMultiSelectAnswer(questionIndex) {
+        if (gameState.gameOver) return;
+        
+        const question = gameData.questions[gameState.currentSection][questionIndex];
+        const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                            .map(el => parseInt(el.value));
+        
+        const isCorrect = selected.length === question.correctIndices.length &&
+                          question.correctIndices.every(i => selected.includes(i));
+        
+        // Disable all options
+        document.querySelectorAll('.option').forEach(opt => {
+            opt.style.pointerEvents = 'none';
+            const inputs = opt.querySelectorAll('input');
+            if (inputs) {
+                inputs.forEach(input => input.disabled = true);
+            }
+        });
+        
+        if (isCorrect) {
+            // Correct answer
+            gameState.score++;
+            updateCharacter('happy');
+            speak("Excellent! All correct answers!");
+            showFeedback("Perfect! You got them all!", true);
+            highlightCorrectAnswers(question.correctIndices);
+            gameState.wrongAnswers = 0;
+            
+            setTimeout(nextQuestion, 2000);
+        } else {
+            // Wrong answer
+            updateCharacter('confused');
+            highlightCorrectAnswers(question.correctIndices);
+            
+            gameState.wrongAnswers++;
+            const remainingAttempts = gameState.lives - gameState.wrongAnswers;
+            
+            if (remainingAttempts > 0) {
+                // Show remaining attempts message
+                speak(`Almost! ${remainingAttempts} attempt(s) remaining.`);
+                showFeedback(`Some answers are incorrect. ${remainingAttempts} attempt(s) remaining.`, false);
+                
+                setTimeout(() => {
+                    // Re-enable options for next attempt
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.style.pointerEvents = 'auto';
+                        const inputs = opt.querySelectorAll('input');
+                        if (inputs) {
+                            inputs.forEach(input => input.disabled = false);
+                        }
+                    });
+                }, 2000);
+            } else {
+                // No more attempts left
+                gameState.gameOver = true;
+                speak("Game over! Starting over...");
+                showFeedback("Game over! Starting over...", false);
+                restartBtn.style.display = 'block';
+                characterImg.classList.add('shake');
+            }
+        }
+        
+        gameState.answeredQuestions++;
+        updateProgress();
+    }
+    
+    // Move to next question
+    
+    
+    // Restart the game from beginning
+    function restartGame() {
+        characterImg.classList.remove('shake');
+        
+        // Reset game state
+        gameState = {
+            currentSection: 'true_false',
+            currentQuestion: 0,
+            score: 0,
+            hintsUsed: 0,
+            currentHint: 0,
+            answeredQuestions: 0,
+            lives: 3,
+            questionsOrder: gameState.questionsOrder,
+            wrongAnswers: 0,
+            gameOver: false
+        };
+        
+        // Reload first question
+        loadQuestion();
+        updateProgress();
+        
+        // Show encouragement message
+        speak("You can do it! Let's try again!");
+        showFeedback("New attempt! Good luck!", true);
+        setTimeout(() => feedback.innerHTML = '', 2000);
+    }
+    
+    // Finish the game
+    function finishGame() {
+        const scorePercentage = Math.round((gameState.score / gameData.totalQuestions) * 100);
+        showResult(scorePercentage);
+    }
+    
+    // Show final result
+    function showResult(scorePercentage, alreadyCompleted = false) {
+        finalScore.textContent = `${scorePercentage}%`;
+        
+        // Calculate stars (1-3)
+        const stars = Math.min(3, Math.ceil(scorePercentage / 33));
+        starsContainer.innerHTML = '';
+        
+        for (let i = 0; i < stars; i++) {
+            const star = document.createElement('i');
+            star.className = 'fas fa-star star';
+            star.style.animationDelay = `${i * 0.2}s`;
+            starsContainer.appendChild(star);
+            
+            // Animate star filling
+            setTimeout(() => {
+                star.classList.add('filled');
+            }, i * 200);
+        }
+        
+        if (scorePercentage >= gameData.passingScore) {
+            resultMessage.textContent = alreadyCompleted ? 
+                "You already completed this game with a great score!" :
+                "Congratulations! You passed the game!";
+            
+            // Show confetti if just completed
+            if (!alreadyCompleted) {
+                confetti.style.opacity = '1';
+                createConfetti();
+                setTimeout(() => confetti.style.opacity = '0', 3000);
+            }
+        } else {
+            resultMessage.textContent = alreadyCompleted ?
+                "You completed this game but didn't pass. Try again!" :
+                "Good try! Practice more and try again to pass!";
+        }
+        
+        // Show result screen
+        resultScreen.classList.add('show');
+    }
+    
+    // Create confetti effect
+    function createConfetti() {
+        const colors = ['#6C63FF', '#FF6584', '#FFC107', '#4CAF50', '#2196F3'];
+        
+        for (let i = 0; i < 100; i++) {
+            const confettiPiece = document.createElement('div');
+            confettiPiece.style.position = 'absolute';
+            confettiPiece.style.width = '10px';
+            confettiPiece.style.height = '10px';
+            confettiPiece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confettiPiece.style.left = Math.random() * 100 + 'vw';
+            confettiPiece.style.top = '-10px';
+            confettiPiece.style.opacity = Math.random();
+            confettiPiece.style.transform = `rotate(${Math.random() * 360}deg)`;
+            confettiPiece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            
+            const animationDuration = Math.random() * 3 + 2;
+            confettiPiece.style.animation = `fall ${animationDuration}s linear forwards`;
+            
+            confetti.appendChild(confettiPiece);
+            
+            // Remove confetti piece after animation
+            setTimeout(() => {
+                confettiPiece.remove();
+            }, animationDuration * 1000);
+        }
+    }
+    
+    // Proceed after game completion
+    function proceedAfterGame() {
+        const scorePercentage = Math.round((gameState.score / gameData.totalQuestions) * 100);
+        
+        if (!gameData.completed && scorePercentage >= gameData.passingScore) {
+            saveGameResult(scorePercentage);
+        }
+        
+        window.location.href = `watchCourse.php?lesson_id=${gameData.lessonId}`;
+    }
+    
+    // Save game result to server
+    function saveGameResult(score) {
+        fetch('../save_game_result.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': gameData.csrfToken
+            },
+            body: JSON.stringify({
+                stu_id: gameData.userId,
+                game_id: gameData.gameId,
+                score: score,
+                lesson_id: gameData.lessonId,
+                csrf_token: gameData.csrfToken
+            })
+        })
+        .then(response => response.json())
+        .catch(error => console.error('Error:', error));
+    }
+    
+    // Show hint for current question
+    function showHint() {
+        if (gameState.hintsUsed >= 2) {
+            speak("No more hints for this question!");
+            return;
+        }
+        
+        const questionIndex = gameState.questionsOrder[gameState.currentSection][gameState.currentQuestion];
+        const question = gameData.questions[gameState.currentSection][questionIndex];
+        let hint = "";
+        
+        if (gameState.hintsUsed === 0) {
+            hint = question.hint || question.hint1 || "Think carefully about the question";
+        } else {
+            hint = question.hint2 || "Try eliminating obviously wrong options first";
+        }
+        
+        speak(hint);
+        gameState.hintsUsed++;
+    }
+    
+    // Helper functions
+    function highlightCorrectAnswer(index) {
+        const options = document.querySelectorAll('.option');
+        if (gameState.currentSection === 'true_false') {
+            options[index ? 0 : 1].classList.add('correct');
+        } else {
+            options[index].classList.add('correct');
+        }
+    }
+    
+    function highlightWrongAnswer(userIndex, correctIndex) {
+        const options = document.querySelectorAll('.option');
+        options[userIndex].classList.add('wrong');
+        
+        if (correctIndex !== undefined) {
+            if (gameState.currentSection === 'true_false') {
+                options[correctIndex ? 0 : 1].classList.add('correct');
+            } else {
+                options[correctIndex].classList.add('correct');
+            }
+        }
+    }
+    
+    function highlightCorrectAnswers(correctIndices) {
+        const options = document.querySelectorAll('.checkbox-option');
+        options.forEach((opt, idx) => {
+            if (correctIndices.includes(idx)) {
+                opt.classList.add('correct');
+            }
+        });
+    }
+    
+    function showFeedback(message, isCorrect) {
+        feedback.textContent = message;
+        feedback.classList.add(isCorrect ? 'correct' : 'wrong');
+        feedback.classList.add('show');
+        
+        setTimeout(() => {
+            feedback.classList.remove('show');
+        }, 2000);
+    }
+    
+    function updateProgress() {
+        const progress = (gameState.answeredQuestions / gameData.totalQuestions) * 100;
+        
+        progressText.textContent = `Question ${gameState.answeredQuestions + 1}/${gameData.totalQuestions}`;
+        scoreText.textContent = `Score: ${gameState.score}/${gameData.totalQuestions}`;
+        progressFill.style.width = `${progress}%`;
+    }
+    
+    function updateCharacter(mood) {
+        characterImg.src = `../images/character-${mood}.png`;
+    }
+    
+    function speak(text) {
+        hintBubble.textContent = text;
+        hintBubble.style.animation = 'none';
+        void hintBubble.offsetWidth;
+        hintBubble.style.animation = 'bounce 2s infinite';
+        
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            speechSynthesis.speak(utterance);
+        }
+    }
+</script>
+</body>
+</html>

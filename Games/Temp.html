@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مغامرة الكود - تعلم البرمجة بطريقة ممتعة</title>
+    <meta name="description" content="لعبة تعليمية تفاعلية لتعليم أساسيات البرمجة للأطفال والمبتدئين بطريقة ممتعة">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- شريط التنقل العلوي -->
+        <nav class="app-navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <i class="fas fa-code logo-icon"></i>
+                    <h1 class="logo-text">مغامرة الكود</h1>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn-outline" id="help-btn">
+                        <i class="fas fa-question-circle"></i> مساعدة
+                    </button>
+                    <button class="btn btn-primary" id="sound-toggle">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- المحتوى الرئيسي -->
+        <main class="game-container">
+            <!-- لوحة معلومات اللعبة -->
+            <div class="game-info-panel">
+                <div class="info-card">
+                    <div class="info-icon success">
+                        <i class="fas fa-level-up-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">المستوى</span>
+                        <span class="info-value"><span id="current-level">1</span>/<span id="total-levels">5</span></span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon warning">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">النقاط</span>
+                        <span class="info-value" id="score">0</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon danger">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">الوقت</span>
+                        <span class="info-value" id="timer">00:00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- منطقة المهمة -->
+            <section class="mission-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks"></i> المهمة الحالية</h2>
+                </div>
+                <div class="mission-content">
+                    <p id="mission-text"></p>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="level-progress"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- منطقة اللعبة الرئيسية -->
+            <div class="game-area">
+                <!-- لوحة اللعبة -->
+                <div class="game-board-container">
+                    <div class="game-board" id="game-board">
+                        <div class="grid-overlay"></div>
+                        <div class="character-container" id="character-container">
+                            <div class="character" id="character">
+                                <div class="character-face">
+                                    <div class="eyes">
+                                        <div class="eye left"></div>
+                                        <div class="eye right"></div>
+                                    </div>
+                                    <div class="mouth"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="target" id="target">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="board-controls">
+                        <button id="run-btn" class="btn btn-success btn-lg">
+                            <i class="fas fa-play"></i> تشغيل البرنامج
+                        </button>
+                        <button id="reset-btn" class="btn btn-danger btn-lg">
+                            <i class="fas fa-redo"></i> إعادة تعيين
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- منطقة البرمجة -->
+                <div class="coding-area">
+                    <!-- كتل البرمجة المتاحة -->
+                    <div class="blocks-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-cubes"></i> كتل البرمجة</h3>
+                            <div class="search-box">
+                                <input type="text" placeholder="ابحث عن كتلة...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        <div class="blocks-container" id="blocks-container">
+                            <!-- سيتم ملؤها بالكتل البرمجية -->
+                        </div>
+                    </div>
+                    
+                    <!-- منطقة العمل -->
+                    <div class="workspace-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-code"></i> منطقة العمل</h3>
+                            <div class="workspace-actions">
+                                <button id="hint-btn" class="btn btn-info btn-sm">
+                                    <i class="fas fa-lightbulb"></i> مساعدة
+                                </button>
+                                <button id="clear-btn" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-trash-alt"></i> مسح الكل
+                                </button>
+                            </div>
+                        </div>
+                        <div class="workspace" id="workspace">
+                            <!-- سيتم ملؤها بالكتل التي يسحبها المستخدم -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- النوافذ المنبثقة -->
+        <!-- نافذة إكمال المستوى -->
+        <div class="modal" id="level-complete-modal">
+            <div class="modal-dialog animate__animated animate__zoomIn">
+                <div class="modal-content">
+                    <div class="modal-header success">
+                        <h3><i class="fas fa-trophy"></i> مستوى مكتمل!</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="result-animation">
+                            <div class="confetti"></div>
+                            <div class="character-celebration">
+                                <i class="fas fa-laugh-beam"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="result-stats">
+                            <div class="stat-box">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-value" id="complete-time">00:00</div>
+                                <div class="stat-label">الوقت المستغرق</div>
+                            </div>
+                            
+                            <div class="stat-box">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-value" id="complete-score">+100</div>
+                                <div class="stat-label">النقاط المكتسبة</div>
+                            </div>
+                            
+                            <div class="stat-box">
+                                <div class="stat-icon">
+                                    <i class="fas fa-medal"></i>
+                                </div>
+                                <div class="stat-value">
+                                    <div class="stars-rating" id="complete-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-label">التقييم</div>
+                            </div>
+                        </div>
+                        
+                        <div class="feedback-message" id="feedback-message">
+                            أحسنت! لقد أكملت المستوى بنجاح!
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="next-level-btn" class="btn btn-primary btn-lg">
+                            المستوى التالي <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- نافذة المساعدة -->
+        <div class="modal" id="hint-modal">
+            <div class="modal-dialog animate__animated animate__fadeInUp">
+                <div class="modal-content">
+                    <div class="modal-header info">
+                        <h3><i class="fas fa-lightbulb"></i> تلميح</h3>
+                        <button id="close-hint-btn" class="btn btn-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="hint-text"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- نافذة إكمال اللعبة -->
+        <div class="modal" id="game-complete-modal">
+            <div class="modal-dialog animate__animated animate__bounceIn">
+                <div class="modal-content">
+                    <div class="modal-header success">
+                        <h3><i class="fas fa-award"></i> تهانينا!</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="celebration-animation">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>لقد أكملت جميع المستويات بنجاح!</h4>
+                        <p>لقد حصلت على <span class="total-score" id="final-score">0</span> نقطة!</p>
+                        
+                        <div class="achievements">
+                            <div class="achievement">
+                                <i class="fas fa-clock"></i>
+                                <span>أسرع مستوى: <span id="fastest-level">00:15</span></span>
+                            </div>
+                            <div class="achievement">
+                                <i class="fas fa-star"></i>
+                                <span>أعلى تقييم: <span id="best-rating">3 نجوم</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="restart-game-btn" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> بدء اللعبة من جديد
+                        </button>
+                        <button id="share-btn" class="btn btn-success">
+                            <i class="fas fa-share-alt"></i> مشاركة النتيجة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- مكتبات JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,982 @@
+<?php
+session_start();
+include('./dbConnection.php');
+
+// Check if user is logged in
+if(!isset($_SESSION['is_login'])) {
+    header("Location: loginSignUp.php");
+    exit();
+}
+
+$student_id = $_SESSION['stu_id'];
+
+
+//$student_id = (int)$_SESSION['stu_id'];
+
+// Get student info for personalization
+$student_stmt = $conn->prepare("SELECT stu_name, stu_img FROM students WHERE stu_id = ?");
+$student_stmt->bind_param("i", $student_id);
+$student_stmt->execute();
+$student_result = $student_stmt->get_result();
+$student_data = $student_result->fetch_assoc();
+$student_name = htmlspecialchars($student_data['stu_name']);
+$student_img = !empty($student_data['stu_img']) ? htmlspecialchars($student_data['stu_img']) : 'images/default-profile.svg';
+?>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CodeKids - Interactive coding quizzes for young learners">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https://*; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka+One&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/quiz.css">
+    
+    <style>
+        :root {
+            --color-primary: #6C63FF;
+            --color-primary-light: #8E85FF;
+            --color-secondary: #FF6584;
+            --color-accent: #FFC107;
+            --color-success: #4CAF50;
+            --color-warning: #FF9800;
+            --color-danger: #F44336;
+            --color-dark: #2D3748;
+            --color-light: #F7FAFC;
+            --color-bg1: #FFFFFF;
+            --color-bg2: #F5F7FF;
+            --transition: all 0.3s ease;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --border-radius: 12px;
+        }
+
+        [data-theme="dark"] {
+            --color-dark: #F7FAFC;
+            --color-light: #2D3748;
+            --color-bg1: #1A202C;
+            --color-bg2: #121826;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-bg2);
+            color: var(--color-dark);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+        
+        /* Navigation */
+        nav {
+            background: var(--color-bg1);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: var(--transition);
+        }
+        
+        .nav_container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .home_button h3 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--color-primary);
+            font-size: 1.5rem;
+            margin: 0;
+            transition: var(--transition);
+        }
+        
+        .home_button:hover h3 {
+            transform: scale(1.05);
+        }
+        
+        .nav_menu {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        
+        .nav_menu a {
+            color: var(--color-dark);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav_menu a:hover, .nav_menu a.active {
+            background: var(--color-primary-light);
+            color: white;
+        }
+        
+        .nav_menu a i {
+            font-size: 1.1rem;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-left: 1rem;
+        }
+        
+        .user-profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--color-primary-light);
+        }
+        
+        /* Quiz Container */
+        .quiz-container {
+            padding: 3rem 0;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        
+        .quiz-header h2 {
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .quiz-header p.subtitle {
+            font-size: 1.1rem;
+            color: var(--color-dark);
+            opacity: 0.8;
+            max-width: 600px;
+        }
+        
+        .stats-summary {
+            display: flex;
+            gap: 1.5rem;
+            background: var(--color-bg1);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            align-items: center;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0 1rem;
+            position: relative;
+        }
+        
+        .stat-item:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            right: -0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 40px;
+            width: 1px;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            display: block;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            display: block;
+        }
+        
+        .course-title {
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            margin: 2.5rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--color-primary-light);
+            display: inline-block;
+        }
+        
+        /* Quiz Grid */
+        .quizzes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .quiz-card {
+            background: var(--color-bg1);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--color-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quiz-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .quiz-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            color: var(--color-primary);
+        }
+        
+        .quiz-card p.description {
+            color: var(--color-dark);
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+        
+        .quiz-status {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .status-completed {
+            background: var(--color-success);
+            color: white;
+        }
+        
+        .status-in-progress {
+            background: var(--color-primary-light);
+            color: white;
+        }
+        
+        .status-not-attempted {
+            background: var(--color-warning);
+            color: white;
+        }
+        
+        .quiz-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--color-dark);
+            opacity: 0.8;
+        }
+        
+        .quiz-meta i {
+            color: var(--color-primary);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            align-self: flex-start;
+        }
+        
+        .btn-primary:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 99, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--color-light);
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-primary-light);
+            color: white;
+        }
+        
+        /* Progress indicator */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--color-success);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+        
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--color-accent);
+            color: var(--color-dark);
+        }
+        
+        .badge-new {
+            background: var(--color-secondary);
+            color: white;
+        }
+        
+        /* Difficulty indicators */
+        .difficulty {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .difficulty-beginner {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--color-success);
+        }
+        
+        .difficulty-intermediate {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--color-warning);
+        }
+        
+        .difficulty-advanced {
+            background: rgba(244, 67, 54, 0.2);
+            color: var(--color-danger);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            grid-column: 1 / -1;
+            background: var(--color-bg1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--color-primary-light);
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+        }
+        
+        .empty-state p {
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.8;
+        }
+        
+        /* Theme toggle */
+        .theme-toggle {
+            background: transparent;
+            border: none;
+            color: var(--color-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--color-dark);
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 3rem;
+        }
+        
+        .footer_container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .footer_1 {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .footer_1 h3 {
+            font-family: 'Fredoka One', cursive;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .footer_1 p {
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mascot img {
+            max-width: 120px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        
+        .footer_2 h4, .footer_3 h4 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        
+        .footer_2 ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer_2 li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer_2 a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .footer_2 a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background: var(--color-primary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        /* Mobile menu */
+        #open-menu-btn, #close-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--color-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .quizzes-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav_menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                max-width: 300px;
+                height: 100vh;
+                background: var(--color-bg1);
+                flex-direction: column;
+                padding: 4rem 2rem;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+                transition: var(--transition);
+                z-index: 999;
+            }
+            
+            .nav_menu.active {
+                right: 0;
+            }
+            
+            #open-menu-btn, #close-menu-btn {
+                display: block;
+            }
+            
+            #close-menu-btn {
+                position: absolute;
+                top: 1.5rem;
+                right: 1.5rem;
+            }
+            
+            .quiz-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-summary {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .stat-item:not(:last-child)::after {
+                display: none;
+            }
+            
+            .container {
+                padding: 0 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .quizzes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quiz-card {
+                padding: 1.25rem;
+            }
+            
+            .nav_container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container nav_container">
+            <a class="home_button" href="../index.php"><h3>🎮 CodeKids</h3></a>
+            <ul class="nav_menu">
+                <li><a href="../student/studentProfile.php"><i class="fas fa-user"></i> My Profile</a></li>
+                <li><a href="quiz.php" class="active"><i class="fas fa-question-circle"></i> Quizzes</a></li>
+                <li><a href="../Notes/notes.php"><i class="fas fa-book"></i> Notes</a></li>
+                <li><a href="../contact.php"><i class="fas fa-envelope"></i> Contact</a></li>
+                
+                <li class="user-profile">
+                    <img src="<?php echo $student_img; ?>" alt="<?php echo $student_name; ?>" onerror="this.src='images/default-profile.svg'">
+                    <span><?php echo $student_name; ?></span>
+                </li>
+                
+                <li>
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                        <span>Dark Mode</span>
+                    </button>
+                </li>
+                
+                <li><a href="../logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+            <button id="open-menu-btn"><i class="fas fa-bars"></i></button>
+            <button id="close-menu-btn"><i class="fas fa-times"></i></button>
+        </div>
+    </nav>
+
+    <section class="quiz-container">
+        <div class="container">
+            <div class="quiz-header">
+                <div>
+                    <h2 class="animate__animated animate__fadeIn">Interactive Quizzes</h2>
+                    <p class="subtitle animate__animated animate__fadeIn">Test your knowledge, track your progress, and earn achievements as you learn</p>
+                </div>
+                
+                <div class="stats-summary animate__animated animate__fadeIn">
+                    <div class="stat-item">
+                        <span class="stat-value">
+                            <?php 
+                            $total_stmt = $conn->prepare("SELECT COUNT(*) FROM quiz_results WHERE student_id = ?");
+                            $total_stmt->bind_param("i", $student_id);
+                            $total_stmt->execute();
+                            echo $total_stmt->get_result()->fetch_row()[0];
+                            ?>
+                        </span>
+                        <span class="stat-label">Quizzes Taken</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">
+                            <?php 
+                            $avg_stmt = $conn->prepare("SELECT AVG(score) FROM quiz_results WHERE student_id = ?");
+                            $avg_stmt->bind_param("i", $student_id);
+                            $avg_stmt->execute();
+                            echo round($avg_stmt->get_result()->fetch_row()[0] ?? 0);
+                            ?>%
+                        </span>
+                        <span class="stat-label">Average Score</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">
+                            <?php 
+                            $perfect_stmt = $conn->prepare("SELECT COUNT(*) FROM quiz_results WHERE student_id = ? AND score = 100");
+                            $perfect_stmt->bind_param("i", $student_id);
+                            $perfect_stmt->execute();
+                            echo $perfect_stmt->get_result()->fetch_row()[0];
+                            ?>
+                        </span>
+                        <span class="stat-label">Perfect Scores</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quizzes-grid">
+                <?php
+                // Get enrolled courses for student
+                $stmt = $conn->prepare("SELECT c.course_id, c.course_name, c.course_img 
+                                      FROM courseorder co 
+                                      JOIN course c ON co.course_id = c.course_id 
+                                      WHERE co.stu_email = ?");
+                $stmt->bind_param("s", $_SESSION['stuLogEmail']);
+                $stmt->execute();
+                $courses = $stmt->get_result();
+
+                if($courses->num_rows > 0) {
+                    while($course = $courses->fetch_assoc()) {
+                        // Get quizzes for each course
+                        $quiz_stmt = $conn->prepare("SELECT q.*, 
+                                                   (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.quiz_id) AS question_count,
+                                                   (SELECT MAX(score) FROM quiz_results qr WHERE qr.quiz_id = q.quiz_id AND qr.student_id = ?) AS best_score,
+                                                   (SELECT COUNT(*) FROM quiz_attempts qa WHERE qa.quiz_id = q.quiz_id AND qa.student_id = ?) AS attempt_count
+                                                   FROM quizzes q 
+                                                   WHERE q.course_id = ? AND q.is_active = TRUE
+                                                   ORDER BY q.quiz_level, q.quiz_title");
+                        $quiz_stmt->bind_param("iii", $student_id, $student_id, $course['course_id']);
+                        $quiz_stmt->execute();
+                        $quizzes = $quiz_stmt->get_result();
+
+                        if($quizzes->num_rows > 0) {
+                            echo '<h3 class="course-title animate__animated animate__fadeIn" data-aos="fade-up">
+                                    <img src="'.htmlspecialchars($course['course_img']).'" alt="'.htmlspecialchars($course['course_name']).'" class="course-icon" width="24" height="24" onerror="this.src=\'images/default-course.svg\'">
+                                    '.htmlspecialchars($course['course_name']).'
+                                  </h3>';
+                            
+                            while($quiz = $quizzes->fetch_assoc()) {
+                                $status_class = '';
+                                $status_text = '';
+                                $progress_width = 0;
+                                
+                                if($quiz['best_score'] !== null) {
+                                    if($quiz['best_score'] >= $quiz['passing_score']) {
+                                        $status_class = 'status-completed';
+                                        $status_text = 'Completed (Best: '.$quiz['best_score'].'%)';
+                                    } else {
+                                        $status_class = 'status-in-progress';
+                                        $status_text = 'In Progress (Best: '.$quiz['best_score'].'%)';
+                                    }
+                                    $progress_width = $quiz['best_score'];
+                                } else {
+                                    $status_class = 'status-not-attempted';
+                                    $status_text = 'Not Attempted';
+                                }
+                                
+                                // Determine difficulty class
+                                $difficulty_class = '';
+                                $difficulty_text = '';
+                                switch(strtolower($quiz['quiz_level'])) {
+                                    case 'beginner':
+                                        $difficulty_class = 'difficulty-beginner';
+                                        $difficulty_text = 'Beginner';
+                                        break;
+                                    case 'intermediate':
+                                        $difficulty_class = 'difficulty-intermediate';
+                                        $difficulty_text = 'Intermediate';
+                                        break;
+                                    case 'advanced':
+                                        $difficulty_class = 'difficulty-advanced';
+                                        $difficulty_text = 'Advanced';
+                                        break;
+                                    default:
+                                        $difficulty_class = 'difficulty-beginner';
+                                        $difficulty_text = 'Beginner';
+                                }
+                                
+                                echo '<div class="quiz-card" data-aos="fade-up" data-aos-delay="'.rand(50, 200).'">
+                                        <span class="difficulty '.$difficulty_class.'">'.$difficulty_text.'</span>';
+                                
+                                if($quiz['attempt_count'] > 0) {
+                                    echo '<span class="badge">Attempted '.$quiz['attempt_count'].' time'.($quiz['attempt_count'] > 1 ? 's' : '').'</span>';
+                                }
+                                
+                                echo '<h4>'.htmlspecialchars($quiz['quiz_title']).'</h4>
+                                      <p class="description">'.htmlspecialchars($quiz['quiz_description']).'</p>
+                                      <span class="quiz-status '.$status_class.'">'.$status_text.'</span>';
+                                
+                                if($quiz['best_score'] !== null) {
+                                    echo '<div class="progress-container">
+                                            <div class="progress-bar" style="width: '.$progress_width.'%"></div>
+                                          </div>';
+                                }
+                                
+                                echo '<div class="quiz-meta">
+                                        <span><i class="fas fa-clock"></i> '.$quiz['time_limit'].' mins</span>
+                                        <span><i class="fas fa-question"></i> '.$quiz['question_count'].' questions</span>
+                                        <span><i class="fas fa-trophy"></i> Pass: '.$quiz['passing_score'].'%</span>
+                                      </div>
+                                      <a href="start_quiz.php?quiz_id='.$quiz['quiz_id'].'" class="btn btn-primary">
+                                        <i class="fas fa-play"></i> '.($quiz['attempt_count'] > 0 ? 'Retake Quiz' : 'Start Quiz').'
+                                      </a>
+                                    </div>';
+                            }
+                        } else {
+                            echo '<div class="empty-state" data-aos="fade-up">
+                                    <i class="fas fa-question-circle"></i>
+                                    <h3>No quizzes available yet</h3>
+                                    <p>There are currently no quizzes for '.htmlspecialchars($course['course_name']).'. Check back later!</p>
+                                  </div>';
+                        }
+                    }
+                } else {
+                    echo '<div class="empty-state" data-aos="fade-up">
+                            <i class="fas fa-book-open"></i>
+                            <h3>No Enrolled Courses</h3>
+                            <p>You need to enroll in courses to access quizzes. Explore our course catalog to get started!</p>
+                            <a href="../courses.php" class="btn btn-primary">Browse Courses</a>
+                          </div>';
+                }
+                ?>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+      <div class="container footer_container">
+        <div class="footer_1">
+          <a class="home_button" href="index.php"><h3>🎮 CodeKids</h3></a>
+          <p>Making coding fun and accessible for kids of all ages! </p>
+          <div class="mascot">
+            <img src="images/mascot.png" alt="Codey the Robot" class="animate__animated animate__tada animate__infinite">
+          </div>
+        </div>
+        <div class="footer_2">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="courses.php">Courses</a></li>
+            <li><a href="quiz.php">Quizzes</a></li>
+            <li><a href="Notes/notes.php">Notes</a></li>
+            <li><a href="contact.php">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="footer_3">
+          <h4>Connect With Us</h4>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; <?php echo date('Y'); ?> CodeKids. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // Initialize AOS animation
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        
+        // Mobile menu toggle
+        const openMenuBtn = document.getElementById('open-menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const navMenu = document.querySelector('.nav_menu');
+        
+        openMenuBtn.addEventListener('click', () => {
+            navMenu.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        closeMenuBtn.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('.nav_menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+        
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icon and text
+            const icon = themeToggle.querySelector('i');
+            const text = themeToggle.querySelector('span');
+            
+            if(newTheme === 'dark') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                text.textContent = 'Light Mode';
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                text.textContent = 'Dark Mode';
+            }
+        });
+        
+        // Set initial theme icon
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const icon = themeToggle.querySelector('i');
+            const text = themeToggle.querySelector('span');
+            
+            if(currentTheme === 'dark') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                text.textContent = 'Light Mode';
+            }
+        });
+        
+        // Add animation to quiz cards as they come into view
+        const quizCards = document.querySelectorAll('.quiz-card');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('animate__fadeInUp');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        quizCards.forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

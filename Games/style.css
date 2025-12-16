@@ -1,0 +1,683 @@
+/* style.css */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --success-color: #4cc9f0;
+    --info-color: #4895ef;
+    --warning-color: #f8961e;
+    --danger-color: #f72585;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    
+    --font-family: 'Tajawal', sans-serif;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: #f5f7fa;
+    color: var(--dark-color);
+    line-height: 1.6;
+    direction: rtl;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* شريط التنقل */
+.app-navbar {
+    background-color: white;
+    box-shadow: var(--box-shadow);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-icon {
+    font-size: 1.75rem;
+    color: var(--primary-color);
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin: 0;
+}
+
+.navbar-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* الأزرار */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-family: var(--font-family);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-info {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: inherit;
+}
+
+/* المحتوى الرئيسي */
+.game-container {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.game-info-panel {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.info-card {
+    background-color: white;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.info-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.info-icon.success {
+    background-color: rgba(76, 201, 240, 0.1);
+    color: var(--success-color);
+}
+
+.info-icon.warning {
+    background-color: rgba(248, 150, 30, 0.1);
+    color: var(--warning-color);
+}
+
+.info-icon.danger {
+    background-color: rgba(247, 37, 133, 0.1);
+    color: var(--danger-color);
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.info-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* منطقة المهمة */
+.mission-section {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.section-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.mission-content {
+    padding: 1.5rem;
+}
+
+.progress-container {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--success-color);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+/* منطقة اللعبة */
+.game-area {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 992px) {
+    .game-area {
+        grid-template-columns: 2fr 3fr;
+    }
+}
+
+.game-board-container {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-board {
+    position: relative;
+    height: 400px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    overflow: hidden;
+}
+
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(to right, #e9ecef 1px, transparent 1px),
+        linear-gradient(to bottom, #e9ecef 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.5;
+}
+
+.character-container {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    transition: all 0.5s ease;
+}
+
+.character {
+    width: 100%;
+    height: 100%;
+    background-color: #ff6b6b;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.character-face {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+}
+
+.eyes {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.eye {
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.mouth {
+    width: 20px;
+    height: 5px;
+    background-color: white;
+    border-radius: 5px;
+    margin: 0 auto;
+}
+
+.target {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #ff6b6b;
+}
+
+.board-controls {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: white;
+}
+
+/* منطقة البرمجة */
+.coding-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.blocks-panel, .workspace-panel {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    flex: 1;
+}
+
+.panel-header {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-box {
+    position: relative;
+    width: 200px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    font-family: var(--font-family);
+}
+
+.search-box i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.blocks-container, .workspace {
+    padding: 1rem;
+    min-height: 200px;
+}
+
+.blocks-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.block {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: move;
+    border: 2px dashed transparent;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.block:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.block-icon {
+    font-size: 1.5rem;
+}
+
+.workspace {
+    min-height: 300px;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.workspace-block {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid var(--primary-color);
+}
+
+.workspace-block-remove {
+    margin-right: auto;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.workspace-block-remove:hover {
+    background-color: #f1f3f5;
+    color: var(--danger-color);
+}
+
+.workspace-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* النوافذ المنبثقة */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1rem;
+}
+
+.modal-dialog {
+    width: 100%;
+    max-width: 500px;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    padding: 1.5rem;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header.success {
+    background-color: var(--success-color);
+}
+
+.modal-header.info {
+    background-color: var(--info-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 2rem 0;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.stars-rating {
+    color: #ffc107;
+    font-size: 1.5rem;
+    letter-spacing: 0.5rem;
+}
+
+.feedback-message {
+    text-align: center;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.result-animation {
+    position: relative;
+    height: 100px;
+    margin-bottom: 1rem;
+}
+
+.confetti {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="%234cc9f0"/></svg>');
+    background-repeat: repeat;
+    opacity: 0;
+    animation: confetti-fall 3s ease-out forwards;
+}
+
+.character-celebration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    color: var(--success-color);
+    animation: bounce 1s infinite alternate;
+}
+
+/* تأثيرات الحركة */
+@keyframes confetti-fall {
+    0% { transform: translateY(-100px); opacity: 1; }
+    100% { transform: translateY(100px); opacity: 0; }
+}
+
+@keyframes bounce {
+    from { transform: translate(-50%, -50%) scale(1); }
+    to { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.animate-character {
+    animation: character-move 0.5s ease-out;
+}
+
+@keyframes character-move {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
+}
+
+/* تصميم متجاوب */
+@media (max-width: 768px) {
+    .game-info-panel {
+        flex-direction: column;
+    }
+    
+    .info-card {
+        width: 100%;
+    }
+    
+    .board-controls {
+        flex-direction: column;
+    }
+    
+    .coding-area {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* حالة العناصر النشطة */
+.active {
+    box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.5);
+}
+
+.success-animation {
+    animation: success-pulse 1s ease-out;
+}
+
+@keyframes success-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}

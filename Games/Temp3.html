@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مغامرة الكود - تعلم البرمجة بطريقة ممتعة</title>
+    <meta name="description" content="لعبة تعليمية تفاعلية لتعليم أساسيات البرمجة للأطفال والمبتدئين بطريقة ممتعة">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --info-color: #4895ef;
+            --warning-color: #f8961e;
+            --danger-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            
+            --font-family: 'Tajawal', sans-serif;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            direction: rtl;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Navigation Bar */
+        .app-navbar {
+            background-color: white;
+            box-shadow: var(--box-shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 1.75rem;
+            color: var(--primary-color);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .navbar-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-family: var(--font-family);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: inherit;
+        }
+
+        /* Main Content */
+        .game-container {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .game-info-panel {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .info-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .info-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .info-icon.success {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success-color);
+        }
+
+        .info-icon.warning {
+            background-color: rgba(248, 150, 30, 0.1);
+            color: var(--warning-color);
+        }
+
+        .info-icon.danger {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger-color);
+        }
+
+        .info-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .info-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Mission Area */
+        .mission-section {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+
+        .mission-content {
+            padding: 1.5rem;
+        }
+
+        .progress-container {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Game Area */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 992px) {
+            .game-area {
+                grid-template-columns: 2fr 3fr;
+            }
+        }
+
+        .game-board-container {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-board {
+            position: relative;
+            height: 400px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            overflow: hidden;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(to right, #e9ecef 1px, transparent 1px),
+                linear-gradient(to bottom, #e9ecef 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.5;
+        }
+.workspace-scroll-btn {
+    position: absolute;
+    right: 30px;
+    width: 36px;
+    height: 36px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 10;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.workspace-scroll-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.workspace-scroll-btn.scroll-up {
+    bottom: 100px;
+}
+
+.workspace-scroll-btn.scroll-down {
+    bottom: 50px;
+}
+        .character-container {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            transition: all 0.5s ease;
+        }
+
+        .character {
+            width: 100%;
+            height: 100%;
+            background-color: #ff6b6b;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .character-face {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+        }
+
+        .eyes {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .eye {
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .mouth {
+            width: 20px;
+            height: 5px;
+            background-color: white;
+            border-radius: 5px;
+            margin: 0 auto;
+        }
+
+        .target {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #ff6b6b;
+        }
+
+        .obstacle {
+            position: absolute;
+            background-color: #adb5bd;
+            border-radius: 4px;
+        }
+
+        .board-controls {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: white;
+        }
+
+        /* Coding Area */
+        .coding-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .blocks-panel, .workspace-panel {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .panel-header {
+            padding: 1rem 1.5rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h3 {
+            font-size: 1.1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+.workspace-block.highlight-related {
+    background-color: rgba(76, 201, 240, 0.15);
+    border-left: 3px solid var(--info-color);
+}
+        .search-box {
+            position: relative;
+            width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.5rem 1rem 0.5rem 2rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            font-family: var(--font-family);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .blocks-container, .workspace {
+            padding: 1rem;
+            min-height: 200px;
+        }
+
+        .blocks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Programming Blocks */
+        .block {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: grab;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            touch-action: none;
+            user-select: none;
+            position: relative;
+            /* Important for drag and drop */
+            -webkit-user-drag: element;
+            user-select: none;
+        }
+
+        .block:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .block.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .block-header {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .block-icon {
+            font-size: 1.25rem;
+        }
+
+        .block-controls {
+            width: 100%;
+            padding: 0.5rem 0;
+        }
+
+        .repeat-count {
+            width: 100%;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 0.25rem;
+        }
+
+        .block-handle {
+            width: 100%;
+            padding: 0.5rem;
+            text-align: center;
+            color: #6c757d;
+            cursor: grab;
+        }
+
+        /* Workspace Area */
+/* منطقة العمل المعدلة */
+.workspace {
+    min-height: 300px;
+    max-height: 900px; /* ارتفاع أقصى */
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 2px dashed #dee2e6;
+    transition: all 0.3s ease;
+    overflow-y: auto; /* إضافة شريط تمرير رأسي عند الحاجة */
+    padding: 15px;
+    scroll-behavior: smooth; /* تمرير سلس */
+}
+
+/* شريط التمرير المخصص */
+.workspace::-webkit-scrollbar {
+    width: 10px;
+}
+
+.workspace::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 5px;
+}
+
+.workspace::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+.workspace::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* تحسين مظهر الكتل البرمجية في منطقة العمل */
+.workspace-block {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-right: 4px solid var(--primary-color);
+    transition: transform 0.2s ease;
+    margin-bottom: 8px; /* تباعد بين الكتل */
+    min-width: 200px; /* عرض أدنى للكتل */
+    flex-shrink: 0; /* منع انضغاط الكتل */
+}
+
+/* تأثيرات عند السحب */
+.workspace.drag-over {
+    background-color: rgba(76, 201, 240, 0.2);
+    border-color: var(--primary-color);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+        .workspace.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+
+        .workspace.empty::after {
+            content: "اسحب الكتل البرمجية هنا";
+        }
+
+        .workspace.drop-highlight {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .workspace-block:hover {
+            transform: translateX(-5px);
+        }
+
+        .workspace-block.repeat-block {
+            border-right-color: var(--warning-color);
+        }
+
+        .workspace-block.repeat-end {
+            border-right-color: var(--danger-color);
+            background-color: #f8f9fa;
+        }
+
+        .workspace-block-remove {
+            margin-left: auto;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .workspace-block-remove:hover {
+            background-color: #f1f3f5;
+            color: var(--danger-color);
+        }
+
+        /* Drag Preview */
+        #dragged-block {
+            position: fixed !important;
+            z-index: 10000;
+            pointer-events: none;
+            transform: rotate(3deg);
+            opacity: 0.8;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            width: auto !important;
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .modal-dialog {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header.success {
+            background-color: var(--success-color);
+        }
+
+        .modal-header.info {
+            background-color: var(--info-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Results */
+        .result-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 2rem 0;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .stars-rating {
+            color: #ffc107;
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+        }
+
+        .feedback-message {
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+        }
+
+        /* Animations */
+        .result-animation {
+            position: relative;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="%234cc9f0"/></svg>');
+            background-repeat: repeat;
+            opacity: 0;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        .character-celebration {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: var(--success-color);
+            animation: bounce 1s infinite alternate;
+        }
+
+        /* Error Alerts */
+        .alert-error {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--danger-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 3000;
+        }
+
+        /* Keyframe Animations */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px); opacity: 1; }
+            100% { transform: translateY(100px); opacity: 0; }
+        }
+
+        @keyframes bounce {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        .animate-character {
+            animation: character-move 0.5s ease-out;
+        }
+
+        @keyframes character-move {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        .success-animation {
+            animation: success-pulse 1s ease-out;
+        }
+
+        @keyframes success-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-info-panel {
+                flex-direction: column;
+            }
+            
+            .info-card {
+                width: 100%;
+            }
+            
+            .board-controls {
+                flex-direction: column;
+            }
+            
+            .coding-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Active States */
+        .active {
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- شريط التنقل العلوي -->
+        <nav class="app-navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <i class="fas fa-code logo-icon"></i>
+                    <h1 class="logo-text">مغامرة الكود</h1>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn-outline" id="help-btn">
+                        <i class="fas fa-question-circle"></i> مساعدة
+                    </button>
+                    <button class="btn btn-primary" id="sound-toggle">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- المحتوى الرئيسي -->
+        <main class="game-container">
+            <!-- لوحة معلومات اللعبة -->
+            <div class="game-info-panel">
+                <div class="info-card">
+                    <div class="info-icon success">
+                        <i class="fas fa-level-up-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">المستوى</span>
+                        <span class="info-value"><span id="current-level">1</span>/<span id="total-levels">5</span></span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon warning">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">النقاط</span>
+                        <span class="info-value" id="score">0</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon danger">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">الوقت</span>
+                        <span class="info-value" id="timer">00:00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- منطقة المهمة -->
+            <section class="mission-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks"></i> المهمة الحالية</h2>
+                </div>
+                <div class="mission-content">
+                    <p id="mission-text"></p>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="level-progress"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- منطقة اللعبة الرئيسية -->
+            <div class="game-area">
+                <!-- لوحة اللعبة -->
+                <div class="game-board-container">
+                    <div class="game-board" id="game-board">
+                        <div class="grid-overlay"></div>
+                        <div class="character-container" id="character-container">
+                            <div class="character" id="character">
+                                <div class="character-face">
+                                    <div class="eyes">
+                                        <div class="eye left"></div>
+                                        <div class="eye right"></div>
+                                    </div>
+                                    <div class="mouth"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="target" id="target">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="board-controls">
+                        <button id="run-btn" class="btn btn-success btn-lg">
+                            <i class="fas fa-play"></i> تشغيل البرنامج
+                        </button>
+                        <button id="reset-btn" class="btn btn-danger btn-lg">
+                            <i class="fas fa-redo"></i> إعادة تعيين
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- منطقة البرمجة -->
+                <div class="coding-area">
+                    <!-- كتل البرمجة المتاحة -->
+                    <div class="blocks-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-cubes"></i> كتل البرمجة</h3>
+                            <div class="search-box">
+                                <input type="text" placeholder="ابحث عن كتلة...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        <div class="blocks-container" id="blocks-container">
+                            <!-- سيتم ملؤها بالكتل البرمجية -->
+                        </div>
+                    </div>
+                    
+                    <!-- منطقة العمل -->
+                    <div class="workspace-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-code"></i> منطقة العمل</h3>
+                            <div class="workspace-actions">
+                                <button id="hint-btn" class="btn btn-info btn-sm">
+                                    <i class="fas fa-lightbulb"></i> مساعدة
+                                </button>
+                                <button id="clear-btn" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-trash-alt"></i> مسح الكل
+                                </button>
+                            </div>
+                        </div>
+                        <div class="workspace" id="workspace">
+                            <!-- سيتم ملؤها بالكتل التي يسحبها المستخدم -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- النوافذ المنبثقة -->
+        <!-- نافذة إكمال المستوى -->
+        <div class="modal" id="level-complete-modal">
+            <div class="modal-dialog animate__animated animate__zoomIn">
+                <div class="modal-content">
+                    <div class="modal-header success">
+                        <h3><i class="fas fa-trophy"></i> مستوى مكتمل!</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="result-animation">
+                            <div class="confetti"></div>
+                            <div class="character-celebration">
+                                <i class="fas fa-laugh-beam"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="result-stats">
+                            <div class="stat-box">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-value" id="complete-time">00:00</div>
+                                <div class="stat-label">الوقت المستغرق</div>
+                            </div>
+                            
+                            <div class="stat-box">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-value" id="complete-score">+100</div>
+                                <div class="stat-label">النقاط المكتسبة</div>
+                            </div>
+                            
+                            <div class="stat-box">
+                                <div class="stat-icon">
+                                    <i class="fas fa-medal"></i>
+                                </div>
+                                <div class="stat-value">
+                                    <div class="stars-rating" id="complete-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-label">التقييم</div>
+                            </div>
+                        </div>
+                        
+                        <div class="feedback-message" id="feedback-message">
+                            أحسنت! لقد أكملت المستوى بنجاح!
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="next-level-btn" class="btn btn-primary btn-lg">
+                            المستوى التالي <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- نافذة المساعدة -->
+        <div class="modal" id="hint-modal">
+            <div class="modal-dialog animate__animated animate__fadeInUp">
+                <div class="modal-content">
+                    <div class="modal-header info">
+                        <h3><i class="fas fa-lightbulb"></i> تلميح</h3>
+                        <button id="close-hint-btn" class="btn btn-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="hint-text"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- نافذة إكمال اللعبة -->
+        <div class="modal" id="game-complete-modal">
+            <div class="modal-dialog animate__animated animate__bounceIn">
+                <div class="modal-content">
+                    <div class="modal-header success">
+                        <h3><i class="fas fa-award"></i> تهانينا!</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="celebration-animation">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>لقد أكملت جميع المستويات بنجاح!</h4>
+                        <p>لقد حصلت على <span class="total-score" id="final-score">0</span> نقطة!</p>
+                        
+                        <div class="achievements">
+                            <div class="achievement">
+                                <i class="fas fa-clock"></i>
+                                <span>أسرع مستوى: <span id="fastest-level">00:15</span></span>
+                            </div>
+                            <div class="achievement">
+                                <i class="fas fa-star"></i>
+                                <span>أعلى تقييم: <span id="best-rating">3 نجوم</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="restart-game-btn" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> بدء اللعبة من جديد
+                        </button>
+                        <button id="share-btn" class="btn btn-success">
+                            <i class="fas fa-share-alt"></i> مشاركة النتيجة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state variables
+            let currentLevel = 1;
+            const totalLevels = 10;
+            let score = 0;
+            let timerInterval;
+            let seconds = 0;
+            let isSoundOn = true;
+            let isGameRunning = false;
+            let characterPosition = { x: 0, y: 0 };
+            let targetPosition = { x: 0, y: 0 };
+            let characterDirection = 0; // 0: right, 90: down, 180: left, 270: up
+            let obstacles = [];
+            let draggedBlock = null;
+            
+            // DOM elements
+            const gameBoard = document.getElementById('game-board');
+            const characterContainer = document.getElementById('character-container');
+            const character = document.getElementById('character');
+            const target = document.getElementById('target');
+            const blocksContainer = document.getElementById('blocks-container');
+            const workspace = document.getElementById('workspace');
+            const runBtn = document.getElementById('run-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const hintBtn = document.getElementById('hint-btn');
+            const helpBtn = document.getElementById('help-btn');
+            const soundToggle = document.getElementById('sound-toggle');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const restartGameBtn = document.getElementById('restart-game-btn');
+            const shareBtn = document.getElementById('share-btn');
+            const closeHintBtn = document.getElementById('close-hint-btn');
+            const levelCompleteModal = document.getElementById('level-complete-modal');
+            const hintModal = document.getElementById('hint-modal');
+            const gameCompleteModal = document.getElementById('game-complete-modal');
+            const missionText = document.getElementById('mission-text');
+            const currentLevelDisplay = document.getElementById('current-level');
+            const totalLevelsDisplay = document.getElementById('total-levels');
+            const scoreDisplay = document.getElementById('score');
+            const timerDisplay = document.getElementById('timer');
+            const levelProgress = document.getElementById('level-progress');
+            const completeTime = document.getElementById('complete-time');
+            const completeScore = document.getElementById('complete-score');
+            const completeStars = document.getElementById('complete-stars');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const finalScore = document.getElementById('final-score');
+            const fastestLevel = document.getElementById('fastest-level');
+            const bestRating = document.getElementById('best-rating');
+            
+            // Game sounds
+            const sounds = {
+                move: new Howl({ src: ['https://assets.codepen.io/21542/howler-demo-move.mp3'] }),
+                success: new Howl({ src: ['https://assets.codepen.io/21542/howler-demo-success.mp3'] }),
+                error: new Howl({ src: ['https://assets.codepen.io/21542/howler-demo-error.mp3'] }),
+                click: new Howl({ src: ['https://assets.codepen.io/21542/howler-demo-click.mp3'] }),
+                pick: new Howl({ src: ['https://assets.codepen.io/21542/howler-demo-pick.mp3'] }),
+                drop: new Howl({ src: ['https://assets.codepen.io/21542/howler-demo-drop.mp3'] })
+            };
+            
+            // Game levels data
+            const levels = [
+                {
+                    mission: "استخدم كتلة 'تحرك للأمام' لجعل الشخصية تصل إلى الهدف",
+                    characterPos: { x: 1, y: 3 },
+                    targetPos: { x: 3, y: 3 },
+                    obstacles: [],
+                    hint: "اسحب كتلة 'تحرك للأمام' إلى منطقة العمل ثم اضغط على زر التشغيل",
+                    solution: ['moveForward']
+                },
+                {
+                    mission: "استخدم كتلتين 'تحرك للأمام' للوصول إلى الهدف",
+                    characterPos: { x: 1, y: 3 },
+                    targetPos: { x: 3, y: 3 },
+                    obstacles: [],
+                    hint: "ستحتاج إلى استخدام كتلتين 'تحرك للأمام' واحدة تلو الأخرى",
+                    solution: ['moveForward', 'moveForward']
+                },
+                {
+                    mission: "استخدم كتل 'تحرك للأمام' و'استدر لليمين' للوصول إلى الهدف",
+                    characterPos: { x: 1, y: 3 },
+                    targetPos: { x: 1, y: 1 },
+                    obstacles: [],
+                    hint: "تحرك للأمام ثم استدر لليمين ثم تحرك للأمام مرة أخرى",
+                    solution: ['moveForward', 'turnRight', 'moveForward']
+                },
+                {
+                    mission: "تجنب العقبات باستخدام كتل الحركة المناسبة",
+                    characterPos: { x: 1, y: 3 },
+                    targetPos: { x: 5, y: 3 },
+                    obstacles: [
+                        { x: 3, y: 2, width: 1, height: 3 }
+                    ],
+                    hint: "ستحتاج إلى التحرك حول العقبة باستخدام عدة كتل حركة",
+                    solution: ['moveForward', 'moveForward', 'turnRight', 'moveForward', 'turnLeft', 'moveForward', 'moveForward']
+                },
+                {
+                    mission: "استخدم كتلة 'التكرار' لإكمال المهمة بأقل عدد من الكتل",
+                    characterPos: { x: 1, y: 3 },
+                    targetPos: { x: 5, y: 3 },
+                    obstacles: [],
+                    hint: "استخدم كتلة التكرار لتكرار كتلة 'تحرك للأمام' مرتين",
+                    solution: ['repeatStart', 'moveForward', 'moveForward', 'repeatEnd']
+                },
+                
+                    // مستوى 6 - استخدام الشرطيات
+    {
+        mission: "استخدم كتل 'إذا-فإن' لتجنب العقبات",
+        characterPos: { x: 1, y: 3 },
+        targetPos: { x: 5, y: 3 },
+        obstacles: [
+            { x: 3, y: 2, width: 1, height: 3 }
+        ],
+        hint: "استخدم كتلة 'إذا-فإن' للتحقق من وجود عقبة",
+        solution: ['ifCondition', 'moveForward', 'turnRight', 'moveForward', 'endIf']
+    },
+    
+    // مستوى 7 - الدوال
+    {
+        mission: "أنشئ دالة 'تجنب العقبة' واستخدمها",
+        characterPos: { x: 1, y: 3 },
+        targetPos: { x: 7, y: 3 },
+        obstacles: [
+            { x: 3, y: 2, width: 1, height: 3 },
+            { x: 5, y: 2, width: 1, height: 3 }
+        ],
+        hint: "حدد دالة تحتوي على حركات تجنب العقبة",
+        solution: ['functionStart', 'turnRight', 'moveForward', 'turnLeft', 'functionEnd', 'callFunction']
+    },
+    
+    // مستوى 8 - التكرار المتداخل
+    {
+        mission: "استخدم تكرارًا متداخلًا للوصول للهدف",
+        characterPos: { x: 0, y: 0 },
+        targetPos: { x: 4, y: 4 },
+        obstacles: [],
+        hint: "كرر حركة للأمام ثم لليمين عدة مرات",
+        solution: ['repeatStart', 'moveForward', 'turnRight', 'repeatEnd']
+    },
+    
+    // مستوى 9 - التحدي
+    {
+        mission: "تحدى نفسك بحل متعدد الخطوات",
+        characterPos: { x: 0, y: 0 },
+        targetPos: { x: 7, y: 7 },
+        obstacles: [
+            { x: 2, y: 1, width: 3, height: 1 },
+            { x: 4, y: 3, width: 1, height: 3 }
+        ],
+        hint: "جرب استخدام الدوال مع الشرطيات",
+        solution: ['functionStart', 'ifCondition', 'turnRight', 'endIf', 'moveForward', 'functionEnd', 'callFunction']
+    },
+    
+    // مستوى 10 - المشروع النهائي
+    {
+        mission: "صمم حلًا إبداعيًا للوصول للهدف",
+        characterPos: { x: 0, y: 0 },
+        targetPos: { x: 7, y: 7 },
+        obstacles: [
+            { x: 1, y: 1, width: 2, height: 2 },
+            { x: 4, y: 4, width: 2, height: 2 }
+        ],
+        hint: "استخدم كل ما تعلمته من كتل برمجية",
+        solution: [] // لا يوجد حل محدد لتشجيع الإبداع
+    }
+                
+                
+            ];
+            
+            // Programming blocks data
+            const programmingBlocks = [
+                {
+                    id: 'moveForward',
+                    name: 'تحرك للأمام',
+                    icon: 'fas fa-arrow-up',
+                    color: '#4361ee',
+                    description: 'تحريك الشخصية للأمام بمقدار خلية واحدة'
+                },
+                {
+                    id: 'moveBackward',
+                    name: 'تحرك للخلف',
+                    icon: 'fas fa-arrow-down',
+                    color: '#3f37c9',
+                    description: 'تحريك الشخصية للخلف بمقدار خلية واحدة'
+                },
+                {
+                    id: 'turnLeft',
+                    name: 'استدر لليسار',
+                    icon: 'fas fa-undo',
+                    color: '#4895ef',
+                    description: 'تدوير الشخصية 90 درجة لليسار'
+                },
+                {
+                    id: 'turnRight',
+                    name: 'استدر لليمين',
+                    icon: 'fas fa-redo',
+                    color: '#4cc9f0',
+                    description: 'تدوير الشخصية 90 درجة لليمين'
+                },
+                {
+                    id: 'jump',
+                    name: 'اقفز',
+                    icon: 'fas fa-arrow-alt-circle-up',
+                    color: '#f8961e',
+                    description: 'قفز فوق العقبات بارتفاع خلية واحدة'
+                },
+                {
+                    id: 'repeatStart',
+                    name: 'كرر',
+                    icon: 'fas fa-sync-alt',
+                    color: '#f8961e',
+                    hasCount: true,
+                    description: 'بداية تكرار مجموعة من الأوامر'
+                },
+                {
+                    id: 'repeatEnd',
+                    name: 'نهاية التكرار',
+                    icon: 'fas fa-stop-circle',
+                    color: '#f72585',
+                    description: 'نهاية مجموعة الأوامر المكررة'
+                },
+                  {
+        id: 'ifCondition',
+        name: 'إذا-فإن',
+        icon: 'fas fa-question-circle',
+        color: '#9c27b0',
+        description: 'تنفيذ الأوامر فقط إذا تحقق الشرط'
+    },
+    {
+        id: 'endIf',
+        name: 'نهاية الشرط',
+        icon: 'fas fa-stop',
+        color: '#673ab7',
+        description: 'نهاية كتلة الشرط'
+    },
+    {
+        id: 'functionStart',
+        name: 'بداية دالة',
+        icon: 'fas fa-code-branch',
+        color: '#009688',
+        description: 'بداية تعريف دالة جديدة'
+    },
+    {
+        id: 'functionEnd',
+        name: 'نهاية دالة',
+        icon: 'fas fa-flag-checkered',
+        color: '#795548',
+        description: 'نهاية تعريف الدالة'
+    },
+    {
+        id: 'callFunction',
+        name: 'استدعاء دالة',
+        icon: 'fas fa-play-circle',
+        color: '#2196f3',
+        description: 'استدعاء دالة معرفة مسبقًا'
+    },
+    {
+        id: 'wait',
+        name: 'انتظر',
+        icon: 'fas fa-clock',
+        color: '#607d8b',
+        hasCount: true,
+        description: 'انتظر عددًا من الثواني'
+    }  
+            ];
+            
+            // Initialize the game
+            function initGame() {
+                // Set up initial displays
+                currentLevelDisplay.textContent = currentLevel;
+                totalLevelsDisplay.textContent = totalLevels;
+                scoreDisplay.textContent = score;
+                
+                // Load the current level
+                loadLevel(currentLevel);
+                
+                // Create programming blocks
+                createProgrammingBlocks();
+                
+                // Set up drag and drop
+                setupDragAndDrop();
+                
+                // Set up event listeners
+                setupEventListeners();
+            }
+            
+            // Load a specific level
+            function loadLevel(levelNum) {
+                // Reset game state
+                clearInterval(timerInterval);
+                seconds = 0;
+                updateTimerDisplay();
+                levelProgress.style.width = '0%';
+                characterDirection = 0;
+                
+                // Get level data
+                const level = levels[levelNum - 1];
+                
+                // Update mission text
+                missionText.textContent = level.mission;
+                
+                // Set character and target positions
+                characterPosition = { ...level.characterPos };
+                targetPosition = { ...level.targetPos };
+                obstacles = [...level.obstacles];
+                
+                // Update game board
+                updateGameBoard();
+                
+                // Start timer
+                startTimer();
+            }
+            
+            // Update the game board visuals
+            function updateGameBoard() {
+                const cellSize = 50; // Each grid cell is 50px
+                
+                // Position character
+                characterContainer.style.left = `${characterPosition.x * cellSize}px`;
+                characterContainer.style.top = `${characterPosition.y * cellSize}px`;
+                character.style.transform = `rotate(${characterDirection}deg)`;
+                
+                // Position target
+                target.style.left = `${targetPosition.x * cellSize}px`;
+                target.style.top = `${targetPosition.y * cellSize}px`;
+                
+                // Clear existing obstacles
+                document.querySelectorAll('.obstacle').forEach(el => el.remove());
+                
+                // Create obstacles
+                obstacles.forEach(obstacle => {
+                    const obstacleEl = document.createElement('div');
+                    obstacleEl.className = 'obstacle';
+                    obstacleEl.style.left = `${obstacle.x * cellSize}px`;
+                    obstacleEl.style.top = `${obstacle.y * cellSize}px`;
+                    obstacleEl.style.width = `${obstacle.width * cellSize}px`;
+                    obstacleEl.style.height = `${obstacle.height * cellSize}px`;
+                    
+                    // Add obstacle label
+                    const label = document.createElement('div');
+                    label.className = 'obstacle-label';
+                    label.textContent = 'عقبة';
+                    obstacleEl.appendChild(label);
+                    
+                    gameBoard.appendChild(obstacleEl);
+                });
+            }
+            
+            // Create programming blocks
+            function createProgrammingBlocks() {
+                blocksContainer.innerHTML = '';
+                
+                programmingBlocks.forEach(block => {
+                    const blockEl = document.createElement('div');
+                    blockEl.className = 'block';
+                    blockEl.dataset.id = block.id;
+                    blockEl.draggable = true; // جعل العنصر قابل للسحب
+                    
+                    blockEl.innerHTML = `
+                        <div class="block-header" style="background-color: ${block.color}">
+                            <i class="${block.icon} block-icon"></i>
+                            <span>${block.name}</span>
+                        </div>
+                        ${block.hasCount ? 
+                            `<div class="block-controls">
+                                <label>عدد المرات:</label>
+                                <input type="number" class="repeat-count" value="2" min="1" max="10">
+                            </div>` 
+                            : ''}
+                        <div class="block-handle">
+                            <i class="fas fa-grip-lines"></i>
+                        </div>
+                    `;
+                    
+                    blocksContainer.appendChild(blockEl);
+                });
+            }
+
+            // Set up drag and drop using HTML5 API
+function setupDragAndDrop() {
+    let draggedBlock = null;
+    const workspace = document.querySelector('.workspace');
+    const blocksPalette = document.querySelector('.blocks-container'); // Reference to blocks palette
+
+    // Make blocks draggable
+    document.querySelectorAll('.block').forEach(block => {
+        block.addEventListener('dragstart', function(e) {
+            draggedBlock = this;
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+            this.classList.add('dragging');
+            playSound('pick');
+            
+            // Create drag image
+            const dragImage = this.cloneNode(true);
+            dragImage.style.position = 'fixed';
+            dragImage.style.opacity = '0.8';
+            dragImage.style.pointerEvents = 'none';
+            dragImage.style.zIndex = '10000';
+            dragImage.style.width = `${this.offsetWidth}px`;
+            dragImage.style.transform = 'rotate(5deg)';
+            dragImage.id = 'drag-ghost';
+            document.body.appendChild(dragImage);
+            e.dataTransfer.setDragImage(dragImage, this.offsetWidth/2, this.offsetHeight/2);
+            
+            // Remove ghost image after short delay
+            setTimeout(() => {
+                const ghost = document.getElementById('drag-ghost');
+                if (ghost) ghost.remove();
+            }, 100);
+        });
+
+        block.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            draggedBlock = null;
+            const ghost = document.getElementById('drag-ghost');
+            if (ghost) ghost.remove();
+        });
+    });
+
+    // Workspace drop improvements
+    workspace.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drop-highlight');
+        
+        // Determine precise drop position
+        const afterElement = getDragAfterElement(workspace, e.clientY);
+        const draggingElement = document.querySelector('.dragging');
+        
+        if (afterElement && draggingElement) {
+            workspace.insertBefore(draggingElement, afterElement);
+        } else if (draggingElement) {
+            workspace.appendChild(draggingElement);
+        }
+    });
+
+    workspace.addEventListener('dragleave', function() {
+        this.classList.remove('drop-highlight');
+    });
+
+    workspace.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drop-highlight');
+        
+        if (draggedBlock) {
+            // Create a copy of the block instead of moving the original
+            const blockClone = draggedBlock.cloneNode(true);
+            blockClone.classList.remove('dragging');
+            blockClone.classList.add('workspace-block');
+            
+            // Add control buttons to the workspace block
+            addBlockControls(blockClone);
+            
+            // Insert the clone into workspace
+            const afterElement = getDragAfterElement(workspace, e.clientY);
+            if (afterElement) {
+                workspace.insertBefore(blockClone, afterElement);
+            } else {
+                workspace.appendChild(blockClone);
+            }
+            
+            playSound('drop');
+        }
+    });
+}
+
+// Helper function to add control buttons to workspace blocks
+function addBlockControls(block) {
+    // Remove button
+    const removeBtn = document.createElement('div');
+    removeBtn.className = 'workspace-block-remove';
+    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    removeBtn.addEventListener('click', function() {
+        block.classList.add('removing');
+        setTimeout(() => block.remove(), 300);
+        playSound('click');
+    });
+    
+    // Copy button
+    const copyBtn = document.createElement('div');
+    copyBtn.className = 'workspace-block-copy';
+    copyBtn.innerHTML = '<i class="far fa-copy"></i>';
+    copyBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const newClone = block.cloneNode(true);
+        newClone.classList.remove('removing');
+        workspace.appendChild(newClone);
+        addBlockControls(newClone);
+        playSound('pick');
+    });
+    
+    block.appendChild(removeBtn);
+    block.appendChild(copyBtn);
+}
+
+// Helper function to determine drop position
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.workspace-block:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function clearWorkspace() {
+    const workspace = document.querySelector('.workspace');
+    const blocks = workspace.querySelectorAll('.workspace-block');
+    blocks.forEach((block, index) => {
+        setTimeout(() => {
+            block.classList.add('removing');
+            setTimeout(() => block.remove(), 300);
+        }, index * 50);
+    });
+    playSound('click');
+}
+
+function setupTouchSupport() {
+    const workspace = document.querySelector('.workspace');
+    let touchStartY;
+    
+    workspace.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    
+    workspace.addEventListener('touchmove', (e) => {
+        const touchY = e.touches[0].clientY;
+        const diff = touchStartY - touchY;
+        workspace.scrollTop += diff;
+        touchStartY = touchY;
+    }, { passive: true });
+}
+
+function setupBlockHighlighting() {
+    const workspace = document.querySelector('.workspace');
+    
+    workspace.addEventListener('mouseover', (e) => {
+        const block = e.target.closest('.workspace-block');
+        if (block) {
+            const blockType = block.dataset.id;
+            document.querySelectorAll('.workspace-block').forEach(b => {
+                b.classList.toggle('highlight-related', 
+                    b.dataset.id === blockType && b !== block);
+            });
+        }
+    });
+    
+    workspace.addEventListener('mouseout', () => {
+        document.querySelectorAll('.workspace-block').forEach(b => {
+            b.classList.remove('highlight-related');
+        });
+    });
+}
+
+            // Set up event listeners
+            function setupEventListeners() {
+                // Run button
+                runBtn.addEventListener('click', executeProgram);
+                
+                // Reset button - Modified to not clear workspace
+                resetBtn.addEventListener('click', () => {
+                    playSound('click');
+                    loadLevel(currentLevel); // Just reload the level without clearing workspace
+                });
+                
+                // Clear button
+                clearBtn.addEventListener('click', () => {
+                    workspace.innerHTML = '';
+                    playSound('click');
+                });
+                
+                // Hint button
+                hintBtn.addEventListener('click', showHint);
+                
+                // Help button
+                helpBtn.addEventListener('click', () => {
+                    showHint();
+                    playSound('click');
+                });
+                
+                // Sound toggle
+                soundToggle.addEventListener('click', toggleSound);
+                
+                // Next level button - Modified to preserve workspace
+                nextLevelBtn.addEventListener('click', () => {
+                    playSound('click');
+                    levelCompleteModal.style.display = 'none';
+                    
+                    if (currentLevel < totalLevels) {
+                        currentLevel++;
+                        currentLevelDisplay.textContent = currentLevel;
+                        loadLevel(currentLevel);
+                    }
+                });
+                
+                // Restart game button
+                restartGameBtn.addEventListener('click', restartGame);
+                
+                // Share button
+                shareBtn.addEventListener('click', shareResults);
+                
+                // Close hint button
+                closeHintBtn.addEventListener('click', () => {
+                    hintModal.style.display = 'none';
+                    playSound('click');
+                });
+                
+                // Close modals when clicking outside
+                window.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('modal')) {
+                        e.target.style.display = 'none';
+                        playSound('click');
+                    }
+                });
+            }
+            
+            // Execute the program in the workspace
+            async function executeProgram() {
+                if (isGameRunning) return;
+                isGameRunning = true;
+                playSound('click');
+                
+                // Disable buttons during execution
+                runBtn.disabled = true;
+                resetBtn.disabled = true;
+                clearBtn.disabled = true;
+                
+                // Get blocks from workspace
+                const blocks = Array.from(workspace.children).map(el => {
+                    return {
+                        element: el,
+                        id: el.dataset.id,
+                        repeatCount: el.querySelector('.repeat-count') ? parseInt(el.querySelector('.repeat-count').value) : null
+                    };
+                });
+                
+                // Validate program
+                if (blocks.length === 0) {
+                    showError('المنطقة العمل فارغة! أضف بعض الكتل البرمجية أولاً.');
+                    resetControls();
+                    return;
+                }
+                
+                // Check for unclosed repeat blocks
+                const repeatStack = [];
+                for (const block of blocks) {
+                    if (block.id === 'repeatStart') {
+                        repeatStack.push(block);
+                    } else if (block.id === 'repeatEnd') {
+                        if (repeatStack.length === 0) {
+                            showError('هناك كتلة نهاية تكرار بدون بداية!');
+                            resetControls();
+                            return;
+                        }
+                        repeatStack.pop();
+                    }
+                }
+                
+                if (repeatStack.length > 0) {
+                    showError('هناك كتلة تكرار بدون نهاية!');
+                    resetControls();
+                    return;
+                }
+                
+                // Execute blocks
+                let i = 0;
+                while (i < blocks.length) {
+                    const block = blocks[i];
+                    
+                    if (block.id === 'repeatStart') {
+                        // Find matching repeat end
+                        let endIndex = i + 1;
+                        let nested = 0;
+                        
+                        while (endIndex < blocks.length) {
+                            if (blocks[endIndex].id === 'repeatStart') {
+                                nested++;
+                            } else if (blocks[endIndex].id === 'repeatEnd') {
+                                if (nested === 0) break;
+                                nested--;
+                            }
+                            endIndex++;
+                        }
+                        
+                        // Repeat the blocks between start and end
+                        const repeatBlocks = blocks.slice(i + 1, endIndex);
+                        for (let j = 0; j < block.repeatCount; j++) {
+                            for (const repeatBlock of repeatBlocks) {
+                                await executeBlock(repeatBlock);
+                                
+                                // Check if character reached target after each move
+                                if (checkWinCondition()) {
+                                    handleLevelComplete();
+                                    resetControls();
+                                    return;
+                                }
+                            }
+                        }
+                        
+                        i = endIndex + 1; // Skip past the repeat block
+                    } else {
+                        await executeBlock(block);
+                        i++;
+                        
+                        // Check if character reached target after each move
+                        if (checkWinCondition()) {
+                            handleLevelComplete();
+                            resetControls();
+                            return;
+                        }
+                    }
+                }
+                
+                // If we get here and haven't won, check if we're on target
+                if (checkWinCondition()) {
+                    handleLevelComplete();
+                } else {
+                    // Show message if didn't reach target
+                    setTimeout(() => {
+                        showError('لم تصل إلى الهدف بعد! حاول مرة أخرى.');
+                        resetControls();
+                    }, 500);
+                }
+                
+                resetControls();
+            }
+            
+            // Reset UI controls after execution
+            function resetControls() {
+                isGameRunning = false;
+                runBtn.disabled = false;
+                resetBtn.disabled = false;
+                clearBtn.disabled = false;
+                
+                // Remove all active highlights
+                document.querySelectorAll('.block-active').forEach(el => {
+                    el.classList.remove('block-active');
+                });
+            }
+            
+            // Execute a single block
+            async function executeBlock(block) {
+                // Highlight the block being executed
+                block.element.classList.add('block-active');
+                
+                // Wait for animation to complete
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Execute the command
+                switch (block.id) {
+                    case 'moveForward':
+                        await moveCharacter(1);
+                        break;
+                    case 'moveBackward':
+                        await moveCharacter(-1);
+                        break;
+                    case 'turnLeft':
+                        await turnCharacter(-90);
+                        break;
+                    case 'turnRight':
+                        await turnCharacter(90);
+                        break;
+                    case 'jump':
+                        await jumpCharacter();
+                        break;
+                case 'ifCondition':
+            const nextX = calculateNextPosition().x;
+            const nextY = calculateNextPosition().y;
+            if (!isObstacleAt(nextX, nextY)) {
+                return true; // تابع التنفيذ
+            }
+            return false; // تخطي الأوامر حتى endIf
+            
+        case 'wait':
+            await new Promise(resolve => 
+                setTimeout(resolve, block.repeatCount * 1000)
+            );
+            break;
+            
+        case 'callFunction':
+            const funcBlocks = findFunctionBlocks();
+            for (const funcBlock of funcBlocks) {
+                await executeBlock(funcBlock);
+            }
+            break;        
+                        
+                        
+                }
+                
+                // Remove highlight after execution
+                block.element.classList.remove('block-active');
+            }
+            
+            // Move the character based on current direction
+            async function moveCharacter(steps) {
+                playSound('move');
+                
+                // Calculate movement based on current direction
+                let dx = 0, dy = 0;
+                
+                switch (characterDirection) {
+                    case 0: // Right
+                        dx = steps;
+                        break;
+                    case 90: // Down
+                        dy = steps;
+                        break;
+                    case 180: // Left
+                        dx = -steps;
+                        break;
+                    case 270: // Up
+                        dy = -steps;
+                        break;
+                }
+                
+                // Calculate new position
+                const newX = characterPosition.x + dx;
+                const newY = characterPosition.y + dy;
+                
+                // Check for obstacles
+                if (isObstacleAt(newX, newY)) {
+                    character.classList.add('animate-character');
+                    setTimeout(() => {
+                        character.classList.remove('animate-character');
+                    }, 500);
+                    playSound('error');
+                    return;
+                }
+                
+                // Check boundaries
+                if (newX < 0 || newX > 7 || newY < 0 || newY > 7) {
+                    character.classList.add('animate-character');
+                    setTimeout(() => {
+                        character.classList.remove('animate-character');
+                    }, 500);
+                    playSound('error');
+                    return;
+                }
+                
+                // Update position
+                characterPosition.x = newX;
+                characterPosition.y = newY;
+                
+                // Animate movement
+                const cellSize = 50;
+                characterContainer.style.transition = 'all 0.4s ease-out';
+                characterContainer.style.left = `${newX * cellSize}px`;
+                characterContainer.style.top = `${newY * cellSize}px`;
+                
+                // Wait for animation to complete
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+            
+            // Turn the character
+            async function turnCharacter(degrees) {
+                playSound('move');
+                
+                // Update direction (keep within 0-360)
+                characterDirection = (characterDirection + degrees + 360) % 360;
+                
+                // Rotate character with smooth animation
+                character.style.transition = 'transform 0.3s ease-out';
+                character.style.transform = `rotate(${characterDirection}deg)`;
+                
+                // Wait for animation to complete
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            // Make the character jump
+            async function jumpCharacter() {
+                playSound('move');
+                
+                // Animate jump with more realistic curve
+                character.style.transition = 'transform 0.2s cubic-bezier(0.5, 1, 0.5, 1)';
+                character.style.transform = `rotate(${characterDirection}deg) translateY(-30px)`;
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                character.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.7, 0.3, 1)';
+                character.style.transform = `rotate(${characterDirection}deg) translateY(0)`;
+                
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            // Check if there's an obstacle at a position
+            function isObstacleAt(x, y) {
+                return obstacles.some(obstacle => {
+                    return x >= obstacle.x && 
+                           x < obstacle.x + obstacle.width && 
+                           y >= obstacle.y && 
+                           y < obstacle.y + obstacle.height;
+                });
+            }
+            
+            // Check if character has reached the target
+            function checkWinCondition() {
+                return characterPosition.x === targetPosition.x && 
+                       characterPosition.y === targetPosition.y;
+            }
+            
+            // Handle level completion
+            function handleLevelComplete() {
+                clearInterval(timerInterval);
+                playSound('success');
+                
+                // Calculate score
+                const levelScore = calculateLevelScore();
+                score += levelScore;
+                scoreDisplay.textContent = score;
+                
+                // Update level progress
+                levelProgress.style.width = '100%';
+                
+                // Show level complete modal
+                completeTime.textContent = formatTime(seconds);
+                completeScore.textContent = `+${levelScore}`;
+                
+                // Set stars based on performance (simplified)
+                const stars = Math.min(3, Math.floor(levelScore / 50));
+                completeStars.innerHTML = '<i class="fas fa-star"></i>'.repeat(stars);
+                
+                // Set feedback message
+                const feedbackMessages = [
+                    "حاول مرة أخرى! يمكنك أن تفعل أفضل من ذلك.",
+                    "جيد! لكن هناك مجال للتحسين.",
+                    "أحسنت! لقد أكملت المستوى بنجاح!",
+                    "ممتاز! أداء رائع!"
+                ];
+                feedbackMessage.textContent = feedbackMessages[stars];
+                
+                // Show modal with animation
+                levelCompleteModal.style.display = 'flex';
+                
+                // If this was the last level, show game complete modal
+                if (currentLevel === totalLevels) {
+                    setTimeout(() => {
+                        levelCompleteModal.style.display = 'none';
+                        showGameComplete();
+                    }, 3000);
+                }
+            }
+            
+            // Calculate score for the completed level
+            function calculateLevelScore() {
+                // Base score for completing the level
+                let levelScore = 100;
+                
+                // Time bonus (faster is better)
+                const timeBonus = Math.max(0, 50 - Math.floor(seconds / 5));
+                levelScore += timeBonus;
+                
+                // Block count penalty (fewer blocks is better)
+                const blockCount = workspace.children.length;
+                const blockPenalty = Math.min(30, blockCount * 5);
+                levelScore -= blockPenalty;
+                
+                // Minimum score
+                return Math.max(50, levelScore);
+            }
+            
+            // Show game complete modal
+            function showGameComplete() {
+                finalScore.textContent = score;
+                fastestLevel.textContent = "00:15"; // This would be tracked in a real game
+                bestRating.textContent = "3 نجوم"; // This would be tracked in a real game
+                gameCompleteModal.style.display = 'flex';
+            }
+            
+            // Reset the current level
+            function resetLevel() {
+                playSound('click');
+                loadLevel(currentLevel); // Just reload the level without clearing workspace
+            }
+            
+            // Go to the next level
+            function goToNextLevel() {
+                playSound('click');
+                levelCompleteModal.style.display = 'none';
+                
+                if (currentLevel < totalLevels) {
+                    currentLevel++;
+                    currentLevelDisplay.textContent = currentLevel;
+                    loadLevel(currentLevel);
+                }
+            }
+            
+            // Restart the game from level 1
+            function restartGame() {
+                playSound('click');
+                gameCompleteModal.style.display = 'none';
+                
+                currentLevel = 1;
+                score = 0;
+                currentLevelDisplay.textContent = currentLevel;
+                scoreDisplay.textContent = score;
+                
+                loadLevel(currentLevel);
+            }
+            
+            // Share results (placeholder functionality)
+            function shareResults() {
+                playSound('click');
+                alert('مشاركة النتائج: لقد حصلت على ' + score + ' نقطة في لعبة مغامرة الكود!');
+            }
+            
+            // Show hint for current level
+            function showHint() {
+                playSound('click');
+                const hint = levels[currentLevel - 1].hint;
+                document.getElementById('hint-text').textContent = hint;
+                hintModal.style.display = 'flex';
+            }
+            
+            // Show error message
+            function showError(message) {
+                playSound('error');
+                
+                const errorEl = document.createElement('div');
+                errorEl.className = 'alert-error animate__animated animate__fadeInDown';
+                errorEl.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>${message}</span>
+                `;
+                
+                document.body.appendChild(errorEl);
+                
+                setTimeout(() => {
+                    errorEl.classList.add('animate__fadeOutUp');
+                    setTimeout(() => errorEl.remove(), 1000);
+                }, 3000);
+            }
+            
+            // Toggle sound on/off
+            function toggleSound() {
+                isSoundOn = !isSoundOn;
+                
+                if (isSoundOn) {
+                    soundToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    Howler.volume(1.0);
+                } else {
+                    soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                    Howler.volume(0);
+                }
+                
+                playSound('click');
+            }
+            
+            // Play a sound
+            function playSound(sound) {
+                if (!isSoundOn) return;
+                sounds[sound].play();
+            }
+            
+            // Start the level timer
+            function startTimer() {
+                clearInterval(timerInterval);
+                seconds = 0;
+                updateTimerDisplay();
+                
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    updateTimerDisplay();
+                    
+                    // Update progress bar (simplified)
+                    const progress = Math.min(100, (seconds / 60) * 100);
+                    levelProgress.style.width = `${progress}%`;
+                }, 1000);
+            }
+            
+            // Update timer display
+            function updateTimerDisplay() {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // Format time as MM:SS
+            function formatTime(totalSeconds) {
+                const mins = Math.floor(totalSeconds / 60);
+                const secs = totalSeconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

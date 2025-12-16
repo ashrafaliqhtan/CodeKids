@@ -1,0 +1,460 @@
+/* Main Game Container */
+.game-container {
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Game Header */
+.game-header {
+    background-color: rgba(0,0,0,0.2);
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.game-title {
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Fredoka One', cursive;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.game-progress {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#progressText {
+    font-size: 14px;
+}
+
+.progress-bar {
+    width: 200px;
+    height: 10px;
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+    border-radius: 5px;
+    transition: width 0.5s ease-out;
+}
+
+/* Game Body */
+.game-body {
+    height: calc(100% - 60px);
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Character Section */
+.character {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    z-index: 10;
+}
+
+.character img {
+    width: 100%;
+    animation: float 3s ease-in-out infinite;
+}
+
+.speech-bubble {
+    position: absolute;
+    top: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 12px 18px;
+    border-radius: 20px;
+    width: 220px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+    color: #333;
+    text-align: center;
+    animation: bounce 2s infinite;
+}
+
+.speech-bubble:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    margin-left: -10px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: white transparent transparent;
+}
+
+/* Question Container */
+.question-container {
+    background-color: white;
+    border-radius: 20px;
+    padding: 25px;
+    height: calc(100% - 40px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    position: relative;
+    margin-left: 180px;
+    display: flex;
+    flex-direction: column;
+}
+
+.question-text {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: bold;
+    line-height: 1.4;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-grow: 1;
+    align-content: center;
+}
+
+.option {
+    background-color: #f5f7fa;
+    border: none;
+    border-radius: 15px;
+    padding: 18px;
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+}
+
+.option:active {
+    transform: translateY(0);
+}
+
+.true-btn {
+    background: linear-gradient(135deg, #a1ffce 0%, #faffd1 100%);
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.false-btn {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    color: #c62828;
+    font-weight: bold;
+}
+
+.option.correct {
+    background: linear-gradient(135deg, #a1ffce 0%, #faffd1 100%);
+    color: #2e7d32;
+    animation: correctAnswer 0.5s;
+}
+
+.option.wrong {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    color: #c62828;
+    animation: wrongAnswer 0.5s;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background-color: #f5f7fa;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.checkbox-option input {
+    width: 20px;
+    height: 20px;
+    accent-color: #4CAF50;
+}
+
+.checkbox-option.correct {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.submit-btn {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Help Button */
+.help-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: all 0.3s;
+    z-index: 5;
+}
+
+.help-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Reward Effects */
+.reward-effects {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/confetti.png');
+    background-size: contain;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 15;
+}
+
+.stars {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/stars.png');
+    background-size: contain;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 15;
+}
+
+/* Result Screen */
+.result-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    z-index: 20;
+}
+
+.result-screen.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.result-title {
+    font-size: 36px;
+    margin-bottom: 20px;
+    font-family: 'Fredoka One', cursive;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+}
+
+.result-score {
+    font-size: 72px;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #ffeb3b;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    animation: pulse 1.5s infinite alternate;
+}
+
+.result-message {
+    font-size: 20px;
+    margin-bottom: 30px;
+    max-width: 500px;
+    line-height: 1.5;
+}
+
+.next-btn {
+    background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 40px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.next-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+}
+
+@keyframes correctAnswer {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes wrongAnswer {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .game-progress {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .progress-bar {
+        width: 150px;
+    }
+    
+    .character {
+        width: 100px;
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    .speech-bubble {
+        width: 180px;
+        font-size: 12px;
+        top: -60px;
+    }
+    
+    .question-container {
+        margin-left: 0;
+        padding: 15px;
+        height: calc(100% - 120px);
+    }
+    
+    .question-text {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+    
+    .options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .option {
+        padding: 12px;
+        font-size: 16px;
+        min-height: 50px;
+    }
+    
+    .submit-btn {
+        grid-column: span 1;
+    }
+    
+    .help-btn {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 15px;
+        align-self: center;
+    }
+    
+    .result-title {
+        font-size: 28px;
+    }
+    
+    .result-score {
+        font-size: 48px;
+    }
+    
+    .result-message {
+        font-size: 16px;
+    }
+}

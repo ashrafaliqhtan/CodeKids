@@ -1,0 +1,411 @@
+<?php
+session_start();
+require_once('./dbConnection.php');
+
+// Initialize variables
+$show_signup = isset($_GET['show_signup']);
+$login_error = '';
+$signup_error = '';
+$signup_success = '';
+
+// Handle Student Login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stuLogEmail'])) {
+    $stuLogEmail = mysqli_real_escape_string($conn, $_POST['stuLogEmail']);
+    $stuLogPass = $_POST['stuLogPass'];
+    
+    $sql = "SELECT stu_id, stu_email, stu_pass FROM students WHERE stu_email = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $stuLogEmail);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        if (password_verify($stuLogPass, $row['stu_pass'])) {
+            // Successful login
+            $_SESSION['is_login'] = true;
+            $_SESSION['stuLogEmail'] = $row['stu_email'];
+            $_SESSION['user_id'] = $row['stu_id'];
+            
+            // Set remember me cookie if requested
+            if (isset($_POST['remember_me'])) {
+                $token = bin2hex(random_bytes(32));
+                setcookie('remember_token', $token, time() + 86400 * 30, "/", "", true, true);
+                
+                // Store token in database
+                $update_sql = "UPDATE students SET remember_token = ? WHERE stu_id = ?";
+                $update_stmt = $conn->prepare($update_sql);
+                $update_stmt->bind_param("si", $token, $row['stu_id']);
+                $update_stmt->execute();
+            }
+            
+            header('Location: student/studentProfile.php');
+            exit();
+        } else {
+            $login_error = "Invalid Email or Password";
+        }
+    } else {
+        $login_error = "Invalid Email or Password";
+    }
+}
+
+// Handle Student Signup
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stuname'])) {
+    $stuname = mysqli_real_escape_string($conn, $_POST['stuname']);
+    $stuemail = mysqli_real_escape_string($conn, $_POST['stuemail']);
+    $stupass = password_hash($_POST['stupass'], PASSWORD_BCRYPT);
+    
+    // Validate password strength
+    if (strlen($_POST['stupass']) < 8) {
+        $signup_error = "Password must be at least 8 characters";
+        $show_signup = true;
+    } else {
+        // Check if email exists
+        $check_sql = "SELECT stu_email FROM students WHERE stu_email = ?";
+        $check_stmt = $conn->prepare($check_sql);
+        $check_stmt->bind_param("s", $stuemail);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        
+        if ($check_result->num_rows > 0) {
+            $signup_error = "Email already registered!";
+            $show_signup = true;
+        } else {
+            $insert_sql = "INSERT INTO students(stu_name, stu_email, stu_pass) VALUES(?, ?, ?)";
+            $insert_stmt = $conn->prepare($insert_sql);
+            $insert_stmt->bind_param("sss", $stuname, $stuemail, $stupass);
+            
+            if ($insert_stmt->execute()) {
+                $signup_success = "Registration successful! Please login.";
+                $show_signup = false;
+                
+                // Send welcome email
+                $subject = "Welcome to CodeKids!";
+                $message = "Hi $stuname,\n\nWelcome to CodeKids! Start your coding adventure now!";
+                $headers = "From: noreply@codekids.com";
+                mail($stuemail, $subject, $message, $headers);
+            } else {
+                $signup_error = "Registration failed. Please try again.";
+                $show_signup = true;
+            }
+        }
+    }
+}
+
+// Auto-login from remember token
+if (!isset($_SESSION['is_login']) && isset($_COOKIE['remember_token'])) {
+    $token = $_COOKIE['remember_token'];
+    $sql = "SELECT stu_id, stu_email FROM students WHERE remember_token = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+        $_SESSION['is_login'] = true;
+        $_SESSION['stuLogEmail'] = $row['stu_email'];
+        $_SESSION['user_id'] = $row['stu_id'];
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeKids | Learn Coding the Fun Way</title>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <link rel="shortcut icon" href="images/logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/exploreStyle.css">
+    <link rel="stylesheet" href="css/exstyle.css">
+</head>
+<body>
+    <nav>
+        <div class="container nav_container">
+            <a href="index.php" class="home_button"><h3>🎮 CodeKids</h3></a>
+            <ul class="nav_menu">
+                <li><a href="courses.php"><i class="uil uil-rocket"></i> Courses</a></li>
+                <li><a href="games/index.php"><i class="uil uil-game-structure"></i> Games</a></li>
+                <?php if(isset($_SESSION['is_login'])): ?>
+                    <li><a href="student/studentProfile.php"><i class="uil uil-user"></i> Profile</a></li>
+                    <li><a href="logout.php"><i class="uil uil-signout"></i> Logout</a></li>
+                <?php else: ?>
+                    <li><a href="index.php?show_signup=true#explore"><i class="uil uil-user-plus"></i> Sign Up</a></li>
+                    <li><a href="index.php#explore"><i class="uil uil-signin"></i> Login</a></li>
+                <?php endif; ?>
+                <li><a href="aboutUs.php"><i class="uil uil-info-circle"></i> About</a></li>
+                <?php if(isset($_SESSION['is_login'])): ?>
+                    <li><a href="discussion_forum/index.php"><i class="uil uil-comments-alt"></i> Forum</a></li>
+                <?php endif; ?>
+            </ul>
+            <button id="open-menu-btn"><i class="uil uil-bars"></i></button>
+            <button id="close-menu-btn"><i class="uil uil-multiply"></i></button>
+        </div>
+    </nav>
+
+    <header>
+        <div class="header_content">
+            <div class="header_text-box">
+                <h1 class="heading-primary">
+                    <span class="heading-primary--main">Coding Made Fun!</span>
+                    <span class="heading-primary--sub">Learn through play and creativity</span>
+                </h1>
+                <div class="header-characters">
+                    <img src="images/robot.png" alt="Coding Robot" loading="lazy">
+                    <img src="images/dino.png" alt="Coding Dinosaur" loading="lazy">
+                </div>
+                <?php if(!isset($_SESSION['is_login'])): ?>
+                    <a href="index.php?show_signup=true#explore" class="btn btn-primary">Start Learning</a>
+                <?php else: ?>
+                    <a href="student/myCourses.php" class="btn btn-primary">Continue Learning</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </header>
+
+    <div id="explore" class="overlay" style="<?= ($show_signup || isset($_POST['stuname']) ? 'display:block' : '' ?>">
+        <div class="wrapper">
+            <a href="index.php" class="close">&times;</a>
+            <div class="column details">
+                <?php if(!$show_signup && !isset($signup_error)): ?>
+                <!-- Login Form -->
+                <div class="signin">
+                    <h2 class="form-header"><span>Student</span> Login</h2>
+                    <form method="POST" action="index.php#explore">
+                        <input type="email" name="stuLogEmail" placeholder="Email" required
+                               value="<?= htmlspecialchars($_POST['stuLogEmail'] ?? '') ?>">
+                        <input type="password" name="stuLogPass" placeholder="Password" required>
+                        <div class="form-options">
+                            <label>
+                                <input type="checkbox" name="remember_me"> Remember me
+                            </label>
+                            <a href="forgot_password.php">Forgot password?</a>
+                        </div>
+                        <?php if($login_error): ?>
+                            <div class="error-message"><?= $login_error ?></div>
+                        <?php endif; ?>
+                        <?php if($signup_success): ?>
+                            <div class="success-message"><?= $signup_success ?></div>
+                        <?php endif; ?>
+                        <button type="submit" class="form-submit">Login</button>
+                    </form>
+                    <div class="form-footer">
+                        Don't have an account? <a href="index.php?show_signup=true#explore">Sign up</a>
+                    </div>
+                </div>
+                <?php else: ?>
+                <!-- Signup Form -->
+                <div class="signup">
+                    <h2 class="form-header"><span>Student</span> Sign Up</h2>
+                    <form method="POST" action="index.php#explore">
+                        <input type="text" name="stuname" placeholder="Full Name" required
+                               value="<?= htmlspecialchars($_POST['stuname'] ?? '') ?>">
+                        <input type="email" name="stuemail" placeholder="Email" required
+                               value="<?= htmlspecialchars($_POST['stuemail'] ?? '') ?>">
+                        <input type="password" name="stupass" placeholder="Password (min 8 characters)" required minlength="8">
+                        <?php if($signup_error): ?>
+                            <div class="error-message"><?= $signup_error ?></div>
+                        <?php endif; ?>
+                        <button type="submit" class="form-submit">Sign Up</button>
+                    </form>
+                    <div class="form-footer">
+                        Already have an account? <a href="index.php#explore">Login</a>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+            <div class="column content">
+                <?php if(!$show_signup && !isset($signup_error)): ?>
+                    <div class="welcome-back">
+                        <h1>Welcome Back!</h1>
+                        <p>Continue your coding journey with CodeKids</p>
+                    </div>
+                <?php else: ?>
+                    <div class="join-us">
+                        <h1>Join CodeKids!</h1>
+                        <p>Start your adventure in coding today</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <section class="categories">
+        <div class="container categories_container">
+            <div class="categories_left">
+                <h1>Our Learning Paths</h1>
+                <p>
+                    Discover interactive courses designed to make coding fun and accessible for kids of all ages. 
+                    From game development to web design, we've got exciting adventures waiting for you!
+                </p>
+                <a href="courses.php" class="btn">Explore Courses</a>
+            </div>
+            <div class="categories_right">
+                <article class="category">
+                    <span class="category_icon"><i class="uil uil-html5"></i></span>
+                    <h5>Web Design</h5>
+                    <p>Create colorful websites with HTML & CSS</p>
+                </article>
+                <article class="category">
+                    <span class="category_icon"><i class="uil uil-java-script"></i></span>
+                    <h5>Game Dev</h5>
+                    <p>Build fun games with JavaScript</p>
+                </article>
+                <article class="category">
+                    <span class="category_icon"><i class="uil uil-robot"></i></span>
+                    <h5>Robotics</h5>
+                    <p>Program robots to do cool things</p>
+                </article>
+                <article class="category">
+                    <span class="category_icon"><i class="uil uil-mobile-android"></i></span>
+                    <h5>App Design</h5>
+                    <p>Design your own mobile apps</p>
+                </article>
+                <article class="category">
+                    <span class="category_icon"><i class="uil uil-shield-check"></i></span>
+                    <h5>Cyber Safety</h5>
+                    <p>Learn to stay safe online</p>
+                </article>
+                <article class="category">
+                    <span class="category_icon"><i class="uil uil-flask"></i></span>
+                    <h5>STEM Projects</h5>
+                    <p>Combine coding with science</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="featured-courses">
+        <h2>Featured Courses</h2>
+        <div class="container courses_container">
+            <?php
+            $sql = "SELECT course_id, course_name, course_desc, course_img FROM course WHERE featured = 1 LIMIT 3";
+            $result = $conn->query($sql);
+            
+            if ($result && $result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo '<article class="course">
+                        <div class="course_image">
+                            <img src="' . htmlspecialchars($row['course_img']) . '" alt="' . htmlspecialchars($row['course_name']) . '">
+                        </div>
+                        <div class="course_info">
+                            <h4>' . htmlspecialchars($row['course_name']) . '</h4>
+                            <p>' . htmlspecialchars($row['course_desc']) . '</p>
+                            <a href="courseDetails.php?course_id=' . $row['course_id'] . '" class="btn btn-secondary">Learn More</a>
+                        </div>
+                    </article>';
+                }
+            } else {
+                echo '<p>No featured courses available at the moment.</p>';
+            }
+            ?>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <h2>What Our Coders Say</h2>
+        <div class="container testimonials_container swiper">
+            <div class="swiper-wrapper">
+                <article class="testimonial swiper-slide">
+                    <div class="avatar">
+                        <img src="images/avatar1.jpg" alt="Student Avatar" loading="lazy">
+                    </div>
+                    <div class="testimonial_info">
+                        <h5>Alex</h5>
+                        <small>Age 10</small>
+                        <div class="testimonial_body">
+                            <p>"I built my first game after just 2 weeks! Now I'm making my own website!"</p>
+                        </div>
+                    </div>
+                </article>
+                <article class="testimonial swiper-slide">
+                    <div class="avatar">
+                        <img src="images/avatar2.jpg" alt="Student Avatar" loading="lazy">
+                    </div>
+                    <div class="testimonial_info">
+                        <h5>Sam</h5>
+                        <small>Age 12</small>
+                        <div class="testimonial_body">
+                            <p>"The robot programming course is awesome! I made my robot dance!"</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer_container">
+            <div class="footer_1">
+                <a href="index.php" class="footer_logo"><h4>CodeKids</h4></a>
+                <p>Making coding fun and accessible for the next generation of innovators.</p>
+            </div>
+            <div class="footer_2">
+                <h4>Links</h4>
+                <ul class="footer_links">
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="courses.php">Courses</a></li>
+                    <li><a href="aboutUs.php">About</a></li>
+                    <li><a href="contact.php">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer_3">
+                <h4>Privacy</h4>
+                <ul class="footer_privacy">
+                    <li><a href="privacy.php">Privacy Policy</a></li>
+                    <li><a href="terms.php">Terms</a></li>
+                </ul>
+            </div>
+            <div class="footer_4">
+                <h4>Contact Us</h4>
+                <div>
+                    <p>+1 234 567 8910</p>
+                    <p>hello@codekids.com</p>
+                </div>
+                <ul class="footer_socials">
+                    <li><a href="#"><i class="uil uil-facebook-f"></i></a></li>
+                    <li><a href="#"><i class="uil uil-instagram"></i></a></li>
+                    <li><a href="#"><i class="uil uil-twitter"></i></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer_copyright">
+            <small>Copyright &copy; CodeKids</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Initialize Swiper
+        const swiper = new Swiper('.swiper', {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            breakpoints: {
+                600: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            },
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+        });
+
+        // Show login modal when URL has #explore
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.location.hash === '#explore') {
+                document.getElementById('explore').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

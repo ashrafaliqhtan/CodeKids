@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeKids - Online Web Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/theme/monokai.min.css">
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --dark-bg: #1a1a1a;
+            --editor-bg: #2d2d2d;
+            --toolbar-height: 50px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            background-color: var(--editor-bg);
+            padding: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            flex: 1;
+            padding: 20px;
+            height: calc(100vh - var(--toolbar-height) - 40px);
+        }
+
+        .editor-panel {
+            background-color: var(--editor-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            padding: 12px;
+            background-color: #252526;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .CodeMirror {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .output-container {
+            display: grid;
+            grid-template-rows: 1fr 150px;
+            height: 100%;
+        }
+
+        #output {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #fff;
+        }
+
+        .console {
+            background-color: #1a1a1a;
+            padding: 10px;
+            color: #fff;
+            font-family: monospace;
+            overflow-y: auto;
+            border-top: 2px solid #3a3a3a;
+        }
+
+        .console-log {
+            color: #fff;
+        }
+
+        .console-error {
+            color: #ff5555;
+        }
+
+        .resizer {
+            width: 5px;
+            background: #3a3a3a;
+            cursor: col-resize;
+            transition: background 0.3s;
+        }
+
+        .resizer:hover {
+            background: var(--primary-color);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .editor-panel {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="btn" onclick="runCode()">
+            <span>▶ Run</span>
+        </button>
+        <button class="btn" onclick="saveProject()">
+            <span>💾 Save</span>
+        </button>
+        <button class="btn" onclick="loadProject()">
+            <span>📂 Open</span>
+        </button>
+        <button class="btn" onclick="downloadProject()">
+            <span>⤓ Export</span>
+        </button>
+        <input type="file" id="fileInput" class="file-input" accept=".html,.css,.js">
+    </div>
+
+    <div class="editor-container">
+        <div class="editor-panel">
+            <div class="editor-header">
+                <span>HTML</span>
+                <span class="file-name">index.html</span>
+            </div>
+            <textarea id="html-code"></textarea>
+        </div>
+        <div class="resizer"></div>
+        <div class="editor-panel">
+            <div class="editor-header">
+                <span>CSS</span>
+                <span class="file-name">style.css</span>
+            </div>
+            <textarea id="css-code"></textarea>
+        </div>
+        <div class="resizer"></div>
+        <div class="editor-panel">
+            <div class="editor-header">
+                <span>JavaScript</span>
+                <span class="file-name">script.js</span>
+            </div>
+            <textarea id="js-code"></textarea>
+        </div>
+    </div>
+
+    <div class="output-container">
+        <iframe id="output" sandbox="allow-scripts allow-same-origin"></iframe>
+        <div class="console" id="console"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/javascript/javascript.min.js"></script>
+    
+    <script>
+        // Initialize CodeMirror editors
+        const htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-code'), {
+            mode: 'htmlmixed',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseTags: true,
+            matchBrackets: true
+        });
+
+        const cssEditor = CodeMirror.fromTextArea(document.getElementById('css-code'), {
+            mode: 'css',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseBrackets: true
+        });
+
+        const jsEditor = CodeMirror.fromTextArea(document.getElementById('js-code'), {
+            mode: 'javascript',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseBrackets: true
+        });
+
+        // Run code function
+        function runCode() {
+            const html = htmlEditor.getValue();
+            const css = cssEditor.getValue();
+            const js = jsEditor.getValue();
+
+            const output = document.getElementById('output');
+            const consoleOutput = document.getElementById('console');
+            consoleOutput.innerHTML = '';
+
+            // Override console functions
+            const consoleLog = console.log;
+            const consoleError = console.error;
+
+            console.log = (...args) => {
+                consoleLog(...args);
+                consoleOutput.innerHTML += `<div class="console-log">${args.join(' ')}</div>`;
+            };
+
+            console.error = (...args) => {
+                consoleError(...args);
+                consoleOutput.innerHTML += `<div class="console-error">${args.join(' ')}</div>`;
+            };
+
+            // Write to iframe
+            const doc = output.contentDocument || output.contentWindow.document;
+            doc.open();
+            doc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>${css}</style>
+                </head>
+                <body>
+                    ${html}
+                    <script>
+                        try {
+                            ${js}
+                        } catch(e) {
+                            console.error(e);
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            doc.close();
+
+            // Restore console functions
+            console.log = consoleLog;
+            console.error = consoleError;
+        }
+
+        // Save/Load functionality
+        function saveProject() {
+            const project = {
+                html: htmlEditor.getValue(),
+                css: cssEditor.getValue(),
+                js: jsEditor.getValue()
+            };
+            localStorage.setItem('webEditorProject', JSON.stringify(project));
+            alert('Project saved successfully!');
+        }
+
+        function loadProject() {
+            const project = JSON.parse(localStorage.getItem('webEditorProject'));
+            if (project) {
+                htmlEditor.setValue(project.html);
+                cssEditor.setValue(project.css);
+                jsEditor.setValue(project.js);
+                runCode();
+            }
+        }
+
+        // File handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    // Handle different file types
+                    if (file.name.endsWith('.html')) {
+                        htmlEditor.setValue(content);
+                    } else if (file.name.endsWith('.css')) {
+                        cssEditor.setValue(content);
+                    } else if (file.name.endsWith('.js')) {
+                        jsEditor.setValue(content);
+                    }
+                    runCode();
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function downloadProject() {
+            const htmlContent = htmlEditor.getValue();
+            const cssContent = cssEditor.getValue();
+            const jsContent = jsEditor.getValue();
+            
+            const combinedCode = `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>${cssContent}</style>
+</head>
+<body>
+    ${htmlContent}
+    <script>${jsContent}<\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([combinedCode], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'project.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Auto-run with debounce
+        let timeout;
+        [htmlEditor, cssEditor, jsEditor].forEach(editor => {
+            editor.on('change', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(runCode, 1000);
+            });
+        });
+
+        // Initialize with sample code
+        htmlEditor.setValue(`<!DOCTYPE html>
+<html>
+<body>
+    <h1>Welcome to CodeFiddle!</h1>
+    <p>Start coding here...</p>
+</body>
+</html>`);
+
+        cssEditor.setValue(`body {
+    padding: 20px;
+    font-family: Arial;
+}
+
+h1 {
+    color: #2196F3;
+}`);
+
+        jsEditor.setValue(`document.querySelector('h1').addEventListener('click', () => {
+    alert('Hello from CodeFiddle!');
+});`);
+
+        // Initial run
+        runCode();
+    </script>
+</body>
+</html>

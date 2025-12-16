@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeFiddle Pro - Advanced Web Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #FF4081;
+            --dark-bg: #1a1a1a;
+            --editor-bg: #2d2d2d;
+            --toolbar-height: 50px;
+            --border-color: #3a3a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            background-color: var(--editor-bg);
+            padding: 10px 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 5px 1fr 5px 1fr;
+            height: calc(100vh - var(--toolbar-height) - 150px);
+            position: relative;
+        }
+
+        .editor-panel {
+            background-color: var(--editor-bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .editor-header {
+            padding: 12px 15px;
+            background-color: #252526;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: #888;
+            font-family: monospace;
+        }
+
+        .CodeMirror {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.6;
+            height: 100%;
+        }
+
+        .resizer {
+            width: 5px;
+            background: var(--border-color);
+            cursor: col-resize;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .resizer:hover {
+            background: var(--primary-color);
+        }
+
+        .output-container {
+            height: 150px;
+            border-top: 2px solid var(--border-color);
+            background-color: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-tabs {
+            display: flex;
+            background-color: #252526;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            background-color: var(--editor-bg);
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+        }
+
+        #output {
+            flex: 1;
+            border: none;
+            background-color: #fff;
+        }
+
+        .console {
+            flex: 1;
+            padding: 10px;
+            font-family: monospace;
+            overflow-y: auto;
+            background-color: #1a1a1a;
+            color: #fff;
+            display: none;
+        }
+
+        .console.active {
+            display: block;
+        }
+
+        .console-item {
+            padding: 4px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .console-item.error {
+            color: #ff5555;
+        }
+
+        .console-item.warn {
+            color: #ffb86c;
+        }
+
+        .console-item.info {
+            color: #8be9fd;
+        }
+
+        .status-bar {
+            padding: 8px 15px;
+            background-color: var(--editor-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--editor-bg);
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            top: 100%;
+            left: 0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #3a3a3a;
+        }
+
+        .error-marker {
+            background-color: #ff555533;
+            border-bottom: 2px solid #ff5555;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 5px 1fr 5px 1fr;
+            }
+
+            .resizer {
+                width: 100%;
+                height: 5px;
+                cursor: row-resize;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="dropdown">
+            <button class="btn">
+                <i class="fas fa-file-code"></i>
+                File
+            </button>
+            <div class="dropdown-content">
+                <div class="dropdown-item" onclick="newProject()">
+                    <i class="fas fa-file"></i> New
+                </div>
+                <div class="dropdown-item" onclick="loadProject()">
+                    <i class="fas fa-folder-open"></i> Open
+                </div>
+                <div class="dropdown-item" onclick="saveProject()">
+                    <i class="fas fa-save"></i> Save
+                </div>
+                <div class="dropdown-item" onclick="downloadProject()">
+                    <i class="fas fa-download"></i> Export
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="runCode()">
+            <i class="fas fa-play"></i>
+            Run
+        </button>
+
+        <div class="dropdown">
+            <button class="btn btn-secondary">
+                <i class="fas fa-cog"></i>
+                Settings
+            </button>
+            <div class="dropdown-content">
+                <div class="dropdown-item" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i> Toggle Theme
+                </div>
+                <div class="dropdown-item" onclick="toggleLayout()">
+                    <i class="fas fa-columns"></i> Toggle Layout
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="fileInput" class="file-input" accept=".html,.css,.js">
+    </div>
+
+    <div class="editor-container" id="editorContainer">
+        <div class="editor-panel">
+            <div class="editor-header">
+                <span><i class="fab fa-html5"></i> HTML</span>
+                <span class="file-name">index.html</span>
+            </div>
+            <textarea id="html-code"></textarea>
+        </div>
+        <div class="resizer" data-index="0"></div>
+        <div class="editor-panel">
+            <div class="editor-header">
+                <span><i class="fab fa-css3"></i> CSS</span>
+                <span class="file-name">style.css</span>
+            </div>
+            <textarea id="css-code"></textarea>
+        </div>
+        <div class="resizer" data-index="1"></div>
+        <div class="editor-panel">
+            <div class="editor-header">
+                <span><i class="fab fa-js"></i> JavaScript</span>
+                <span class="file-name">script.js</span>
+            </div>
+            <textarea id="js-code"></textarea>
+        </div>
+    </div>
+
+    <div class="output-container">
+        <div class="output-tabs">
+            <button class="tab-btn active" onclick="showTab('output')">Result</button>
+            <button class="tab-btn" onclick="showTab('console')">Console</button>
+        </div>
+        <iframe id="output" sandbox="allow-scripts allow-same-origin"></iframe>
+        <div class="console" id="console"></div>
+    </div>
+
+    <div class="status-bar">
+        <span id="status">Ready</span>
+        <span>CodeFiddle Pro v1.2.0</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/addon/lint/lint.min.js"></script>
+
+    <script>
+        // Initialize CodeMirror Editors
+        const htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-code'), {
+            mode: 'htmlmixed',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseTags: true,
+            matchBrackets: true,
+            extraKeys: {'Ctrl-Space': 'autocomplete'}
+        });
+
+        const cssEditor = CodeMirror.fromTextArea(document.getElementById('css-code'), {
+            mode: 'css',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseBrackets: true,
+            matchBrackets: true
+        });
+
+        const jsEditor = CodeMirror.fromTextArea(document.getElementById('js-code'), {
+            mode: 'javascript',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            gutters: ['CodeMirror-lint-markers'],
+            lint: true
+        });
+
+        // Editor State Management
+        let currentTheme = 'monokai';
+        let currentLayout = 'horizontal';
+        let consoleHistory = [];
+
+        // Initialize Resizable Panels
+        const resizers = document.querySelectorAll('.resizer');
+        const editorContainer = document.getElementById('editorContainer');
+        let isResizing = false;
+        let currentResizerIndex = 0;
+
+        resizers.forEach((resizer, index) => {
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                currentResizerIndex = index;
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', () => {
+                    isResizing = false;
+                    document.removeEventListener('mousemove', handleMouseMove);
+                });
+            });
+        });
+
+        function handleMouseMove(e) {
+            if (!isResizing) return;
+            
+            const containerRect = editorContainer.getBoundingClientRect();
+            const x = e.clientX - containerRect.left;
+            const percentage = (x / containerRect.width) * 100;
+            
+            const columns = [...editorContainer.style.gridTemplateColumns.split(' ')];
+            const prevCol = currentResizerIndex * 2;
+            
+            columns[prevCol] = `${percentage}%`;
+            columns[prevCol + 2] = `${100 - percentage}%`;
+            
+            editorContainer.style.gridTemplateColumns = columns.join(' ');
+        }
+
+        // Code Execution
+        function runCode() {
+            try {
+                const html = htmlEditor.getValue();
+                const css = cssEditor.getValue();
+                const js = jsEditor.getValue();
+                const output = document.getElementById('output');
+                const consoleElement = document.getElementById('console');
+                
+                consoleElement.innerHTML = '';
+                output.srcdoc = '';
+
+                // Override console methods
+                const originalConsole = {...console};
+                ['log', 'error', 'warn', 'info'].forEach(method => {
+                    console[method] = (...args) => {
+                        originalConsole[method](...args);
+                        logToConsole(method, ...args);
+                    };
+                });
+
+                const doc = output.contentDocument || output.contentWindow.document;
+                doc.open();
+                doc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>${css}</style>
+                    </head>
+                    <body>
+                        ${html}
+                        <script>
+                            try {
+                                ${js}
+                            } catch(e) {
+                                console.error(e.toString());
+                            }
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                doc.close();
+
+                // Restore console methods
+                ['log', 'error', 'warn', 'info'].forEach(method => {
+                    console[method] = originalConsole[method];
+                });
+
+                updateStatus('Code executed successfully');
+            } catch (error) {
+                logToConsole('error', error.toString());
+                updateStatus('Execution error');
+            }
+        }
+
+        // Console Management
+        function logToConsole(type, ...args) {
+            const consoleElement = document.getElementById('console');
+            const message = document.createElement('div');
+            message.className = `console-item ${type}`;
+            message.textContent = args.join(' ');
+            consoleElement.appendChild(message);
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+            consoleHistory.push({type, message: args.join(' ')});
+        }
+
+        // Project Management
+        function newProject() {
+            if (confirm('Are you sure? Unsaved changes will be lost.')) {
+                htmlEditor.setValue('');
+                cssEditor.setValue('');
+                jsEditor.setValue('');
+                localStorage.removeItem('currentProject');
+                updateStatus('New project created');
+            }
+        }
+
+        function saveProject() {
+            const project = {
+                html: htmlEditor.getValue(),
+                css: cssEditor.getValue(),
+                js: jsEditor.getValue(),
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem('currentProject', JSON.stringify(project));
+            updateStatus('Project saved locally');
+        }
+
+        function loadProject() {
+            const project = JSON.parse(localStorage.getItem('currentProject'));
+            if (project) {
+                htmlEditor.setValue(project.html);
+                cssEditor.setValue(project.css);
+                jsEditor.setValue(project.js);
+                updateStatus('Project loaded');
+                runCode();
+            }
+        }
+
+        // File Handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                if (file.name.endsWith('.html')) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(content, 'text/html');
+                    htmlEditor.setValue(doc.body.innerHTML);
+                    cssEditor.setValue([...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n'));
+                    jsEditor.setValue([...doc.querySelectorAll('script')].map(s => s.innerHTML).join('\n'));
+                } else if (file.name.endsWith('.css')) {
+                    cssEditor.setValue(content);
+                } else if (file.name.endsWith('.js')) {
+                    jsEditor.setValue(content);
+                }
+                runCode();
+                updateStatus(`Loaded: ${file.name}`);
+            };
+            reader.readAsText(file);
+        });
+
+        function downloadProject() {
+            const htmlContent = htmlEditor.getValue();
+            const cssContent = cssEditor.getValue();
+            const jsContent = jsEditor.getValue();
+            
+            const combinedCode = `<!DOCTYPE html>
+<html>
+<head>
+    <title>CodeFiddle Project</title>
+    <style>${cssContent}</style>
+</head>
+<body>
+    ${htmlContent}
+    <script>${jsContent}<\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([combinedCode], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'codefiddle-project.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            
+            
+            
+            
+            
+            // UI Controls
+function showTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.console, #output').forEach(el => el.style.display = 'none');
+    
+    event.target.classList.add('active');
+    document.getElementById(tabName).style.display = 'block';
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'monokai' ? 'default' : 'monokai';
+    [htmlEditor, cssEditor, jsEditor].forEach(editor => 
+        editor.setOption('theme', currentTheme)
+    );
+    updateStatus(`Theme: ${currentTheme}`);
+}
+
+function toggleLayout() {
+    currentLayout = currentLayout === 'horizontal' ? 'vertical' : 'horizontal';
+    editorContainer.style.gridTemplateColumns = currentLayout === 'horizontal' ?
+        '1fr 5px 1fr 5px 1fr' : '1fr';
+    editorContainer.style.gridTemplateRows = currentLayout === 'vertical' ?
+        '1fr 5px 1fr 5px 1fr' : '1fr';
+    updateStatus(`Layout: ${currentLayout}`);
+}
+
+function updateStatus(message) {
+    document.getElementById('status').textContent = message;
+    setTimeout(() => {
+        document.getElementById('status').textContent = 'Ready';
+    }, 3000);
+}
+
+// Initialization
+htmlEditor.setValue(`<h1>Welcome to CodeFiddle Pro!</h1>
+            <p>Start coding here...</p> <button onclick="alert('Hello!")">Click Me</ button>`);
+                cssEditor.setValue(`body {
+padding: 20px;
+font-family: Arial;
+background: #f0f0f0;
+
+
+            {
+            h1 { color: #2196F3; }
+button { padding: 10px 20px; background: #2196F3 color: white; border: none; border-radius: 4px; cursor: pointer; 
+});
+    jsEditor.setValue(`document.querySelector('h1').addEventListener('click', () => {
+console.log('Header clicked!');
+    // Auto-save every 30 seconds
+    setInterval(saveProject, 30000);
+    runCode();
+</script>
+

@@ -1,0 +1,12 @@
+
+  nav {
+     background: var(--color-bg);
+     /* background: #000; */
+     
+      }
+      .nav_menu a {
+        color: white;
+      }
+      nav button {
+        color: white;
+      }
